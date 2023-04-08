@@ -1,0 +1,84 @@
+# wandb params
+project: "offline-srl-benchmark"
+group: "CarCircle-0-30"
+name: null
+prefix: ""
+suffix: ""
+# model params
+embedding_dim: 128
+num_layers: 3
+num_heads: 8
+seq_len: 10
+episode_len: 300
+attention_dropout: 0.1
+residual_dropout: 0.1
+embedding_dropout: 0.1
+max_action: 1.0
+time_emb: true
+# training params
+env_name: "SafetyCarCircle-v0"
+dataset: "dataset/data/cc_cost_0_30_851.hdf5"
+learning_rate: 0.0001
+betas: [0.9, 0.999]
+weight_decay: 0.0001
+clip_grad: 0.25
+batch_size: 2048
+update_steps: 100_000
+lr_warmup_steps: 500
+reward_scale: 0.1
+cost_scale: 1
+num_workers: 8
+# evaluation params
+target_returns: [[400, 0], [450, 0], [400, 10], [450, 10], [500, 10], [450, 20]]  # reward, cost
+# target_costs: [0.0, 10.0, 20.0, 30.0, 40.0, 50.0]
+eval_rollouts: 5
+eval_every: 5000
+# general params
+log_path: "log"
+deterministic_torch: False
+seed: 10
+device: "cuda:0"
+thread: 6
+# augmentation param
+deg: 4
+pf_sample: false
+beta: 1
+augment_percent: 0.2
+# maximum absolute value of reward for the augmented trajs
+max_reward: 500.0
+# minimum reward above the PF curve
+min_reward: 1.0
+# the max drecrease of ret between the associated traj w.r.t the nearest pf traj
+max_rew_decrease: 100.0
+# model mode params
+use_rew: true
+use_cost: true
+cost_transform: true
+cost_prefix: false
+add_cost_feat: false
+mul_cost_feat: false
+cat_cost_feat: false
+action_head_layers: 1
+loss_cost_weight: 0.02
+loss_state_weight: 0
+cost_reverse: false
+pf_only: false
+rmin: 300
+cost_bins: 60
+npb: 5
+cost_sample: true
+linear: true
+start_sampling: false 
+prob: 0.2
+stochastic: true
+init_temperature: 0.1
+no_entropy: false
+# random augmentation
+random_aug: 0
+aug_rmin: 400
+aug_rmax: 500
+aug_cmin: -2
+aug_cmax: 25
+cgap: 5
+rstd: 1
+cstd: 0.2
