@@ -1,31 +1,22 @@
-# Dataset for Offline Safe Reinforcement Learning
+# Offline Safe Reinforcement Learning (OSRL) Baselines
 
-DSRL is an open-source benchmark for offline safe reinforcement learning.
+OSRL is an open-source implementation for offline safe reinforcement learning algorithms.
 
 ## Structure
 The structure of this repo is as follows:
 ```
-├── algorithms  # offline safe RL algorithms
-│   ├── algo1
-│   │   ├── configs  # configs for algo1
-│   │   ├── script  # .py files to train or evaluate algo1
-│   │   ├── log  # store training process or evaluation results
+├── osrl  # offline safe RL algorithms
+│   ├── common_net.py
+│   ├── common_util.py
+│   ├── xx_algorithm.py
 │   ├── ...
-├── Bullet-Safety-Gym  # experiment environment
-├── safe-rl-lib  # safe RL expert libraries
-├── dsrl  
-│   ├── bullet_safety_gym  # a wrapper implementation for offline safe RL
-│   ├── collect_dataset  # collect offline dataset based-on safe-rl-lib
-│   │   ├── train_xxx.py  # use sac or ppo expert to collect offline data
-│   │   ├── create_dataset.py  # process the saved offline data to d4rl format
-│   │   ├── stitcb_dataset.py # stitch multiple datasets together
 ```
 
 ## Installation
 Pull the repo and install:
 ```
-git clone https://github.com/liuzuxin/offline-safe-rl.git
-cd offline-safe-rl
+git clone https://github.com/liuzuxin/offline-safe-rl-baselines.git
+cd offline-safe-rl-baselines
 pip install -e .
 ```
 
