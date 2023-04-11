@@ -39,7 +39,7 @@ def eval(args: EvalConfig):
     cpq_model = CPQ(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
-        max_action=cfg["max_action"],
+        max_action=env.action_space.high[0],
         a_hidden_sizes=cfg["a_hidden_sizes"],
         c_hidden_sizes=cfg["c_hidden_sizes"],
         vae_hidden_sizes=cfg["vae_hidden_sizes"],
@@ -67,6 +67,7 @@ def eval(args: EvalConfig):
 
     ret, cost, length = trainer.evaluate(args.eval_episodes)
     print(f"Eval reward: {ret}, cost: {cost}, length: {length}")
+
 
 if __name__ == "__main__":
     eval()

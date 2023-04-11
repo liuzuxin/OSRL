@@ -22,7 +22,6 @@ class CDTTrainConfig:
     attention_dropout: float = 0.1
     residual_dropout: float = 0.1
     embedding_dropout: float = 0.1
-    max_action: float = 1.0
     time_emb: bool = True
     # training params
     task: str = "offline-CarCircle-v0"

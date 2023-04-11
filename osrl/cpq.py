@@ -20,7 +20,7 @@ class CPQ(nn.Module):
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
-                 max_action: float = 1.0,
+                 max_action: float,
                  a_hidden_sizes: list = [128, 128],
                  c_hidden_sizes: list = [128, 128],
                  vae_hidden_sizes: int = 64,
@@ -75,9 +75,11 @@ class CPQ(nn.Module):
         self.actor = SquashedGaussianMLPActor(
             self.state_dim, self.action_dim, self.a_hidden_sizes, nn.ReLU).to(self.device)
         self.critic = EnsembleQCritic(self.state_dim, self.action_dim, self.c_hidden_sizes, nn.ReLU, num_q=self.num_q).to(self.device)
-        self.vae = VAE(self.state_dim, self.action_dim, self.vae_hidden_sizes, self.latent_dim, self.max_action).to(self.device)
+        self.vae = VAE(self.state_dim, self.action_dim, self.vae_hidden_sizes, self.latent_dim, self.max_action, self.device).to(self.device)
         self.cost_critic = EnsembleQCritic(self.state_dim, self.action_dim, self.c_hidden_sizes, nn.ReLU, num_q=self.num_qc).to(self.device)
         
+        self.actor_old = deepcopy(self.actor)
+        self.actor_old.eval()
         self.critic_old = deepcopy(self.critic)
         self.critic_old.eval()
         self.cost_critic_old = deepcopy(self.cost_critic)
@@ -140,7 +142,7 @@ class CPQ(nn.Module):
         with torch.no_grad():
             next_actions, _ = self._actor_forward(next_observations, False, True)
             qc_targ, _ = self.cost_critic_old.predict(next_observations, next_actions)
-            backup = costs + self.gamma * (1 - done) * qc_targ
+            backup = costs + self.gamma * qc_targ
 
             batch_size = observations.shape[0]
             _, _, pi_dist = self.actor(observations, False, True, True)
@@ -171,7 +173,6 @@ class CPQ(nn.Module):
         return loss_cost_critic, stats_cost_critic
 
     def actor_loss(self, observations):
-        # freeze critic and cost_critic
         for p in self.critic.parameters():
             p.requires_grad = False
         for p in self.cost_critic.parameters():
@@ -186,7 +187,6 @@ class CPQ(nn.Module):
         self.actor_optim.step()
         stats_actor = {"loss/loss_actor": loss_actor.item()}
         
-        # unfreeze critic and cost_critic
         for p in self.critic.parameters():
             p.requires_grad = True
         for p in self.cost_critic.parameters():
@@ -197,6 +197,7 @@ class CPQ(nn.Module):
         """Soft-update the weight for the target network."""
         self._soft_update(self.critic_old, self.critic, self.tau)
         self._soft_update(self.cost_critic_old, self.cost_critic, self.tau)
+        self._soft_update(self.actor_old, self.actor, self.tau)
 
     def setup_optimiers(self, actor_lr, critic_lr, alpha_lr, vae_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)

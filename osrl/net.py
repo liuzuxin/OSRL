@@ -246,6 +246,33 @@ class VAE(nn.Module):
         return self.act_lim * torch.tanh(self.d3(a))
 
 
+class LagrangianPIDController:
+    '''
+    Lagrangian multiplier controller
+    '''
+    def __init__(self, KP, KI, KD, thres) -> None:
+        super().__init__()
+        self.KP = KP
+        self.KI = KI
+        self.KD = KD
+        self.thres = thres
+        self.error_old = 0
+        self.error_integral = 0
+
+    def control(self, qc):
+        '''
+        @param qc [batch,]
+        '''
+        error_new = torch.mean(qc - self.thres)  # [batch]
+        error_diff = F.relu(error_new - self.error_old)
+        self.error_integral = torch.mean(F.relu(self.error_integral + error_new))
+        self.error_old = error_new
+
+        multiplier = F.relu(self.KP * F.relu(error_new) + self.KI * self.error_integral +
+                          self.KD * error_diff)
+        return torch.mean(multiplier)
+
+
 # Decision Transformer implementation
 class TransformerBlock(nn.Module):
 

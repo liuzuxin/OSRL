@@ -64,6 +64,7 @@ def train(args: CDTTrainConfig):
     model = CDT(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
+        max_action=env.action_space.high[0],
         embedding_dim=args.embedding_dim,
         seq_len=args.seq_len,
         episode_len=args.episode_len,
@@ -72,7 +73,6 @@ def train(args: CDTTrainConfig):
         attention_dropout=args.attention_dropout,
         residual_dropout=args.residual_dropout,
         embedding_dropout=args.embedding_dropout,
-        max_action=args.max_action,
         time_emb=args.time_emb,
         use_rew=args.use_rew,
         use_cost=args.use_cost,

@@ -15,26 +15,26 @@ from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from saferl.utils import WandbLogger
 
 from osrl.dataset import TransitionDataset
-from osrl.cpq import CPQ, CPQTrainer
+from osrl.bcql import BCQL, BCQLTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.cpq_configs import CPQTrainConfig, \
-                                CPQCarCircleConfig, CPQCarRunConfig, \
-                                CPQAntRunConfig, CPQAntCircleConfig, \
-                                CPQDroneRunConfig, CPQDroneCircleConfig 
+from configs.bcql_configs import BCQLTrainConfig, \
+                                BCQLCarCircleConfig, BCQLCarRunConfig, \
+                                BCQLAntRunConfig, BCQLAntCircleConfig, \
+                                BCQLDroneRunConfig, BCQLDroneCircleConfig 
 
 
 DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": CPQCarCircleConfig,
-    "offline-AntRun-v0": CPQAntRunConfig,
-    "offline-DroneRun-v0": CPQDroneRunConfig,
-    "offline-DroneCircle-v0": CPQDroneCircleConfig,
-    "offline-CarRun-v0": CPQCarRunConfig,
-    "offline-AntCircle-v0": CPQAntCircleConfig,
+    "offline-CarCircle-v0": BCQLCarCircleConfig,
+    "offline-AntRun-v0": BCQLAntRunConfig,
+    "offline-DroneRun-v0": BCQLDroneRunConfig,
+    "offline-DroneCircle-v0": BCQLDroneCircleConfig,
+    "offline-CarRun-v0": BCQLCarRunConfig,
+    "offline-AntCircle-v0": BCQLAntCircleConfig,
 }
 
 
 @pyrallis.wrap()
-def train(args: CPQTrainConfig):
+def train(args: BCQLTrainConfig):
     seed_all(args.seed)
 
     # setup logger
@@ -59,22 +59,22 @@ def train(args: CPQTrainConfig):
     env = OfflineEnvWrapper(env)
 
     # model & optimizer & scheduler setup
-    model = CPQ(
+    model = BCQL(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
         max_action=env.action_space.high[0],
         a_hidden_sizes=args.a_hidden_sizes,
         c_hidden_sizes=args.c_hidden_sizes,
         vae_hidden_sizes=args.vae_hidden_sizes,
-        alpha_max=args.alpha_max,
         sample_action_num=args.sample_action_num,
+        PID=args.PID,
         gamma=args.gamma,
         tau=args.tau,
         lmbda=args.lmbda,
         beta=args.beta,
+        phi=args.phi,
         num_q=args.num_q,
         num_qc=args.num_qc,
-        qc_scalar=args.qc_scalar,
         cost_limit=args.cost_limit,
         episode_len=args.episode_len,
         device=args.device,
@@ -86,16 +86,15 @@ def train(args: CPQTrainConfig):
 
     logger.setup_checkpoint_fn(checkpoint_fn)
 
-    trainer = CPQTrainer(model,
-                         env,
-                         logger=logger,
-                         actor_lr=args.actor_lr,
-                         critic_lr=args.critic_lr,
-                         alpha_lr=args.alpha_lr,
-                         vae_lr=args.vae_lr,
-                         reward_scale=args.reward_scale,
-                         cost_scale=args.cost_scale,
-                         device=args.device)
+    trainer = BCQLTrainer(model,
+                          env,
+                          logger=logger,
+                          actor_lr=args.actor_lr,
+                          critic_lr=args.critic_lr,
+                          vae_lr=args.vae_lr,
+                          reward_scale=args.reward_scale,
+                          cost_scale=args.cost_scale,
+                          device=args.device)
 
     dataset = TransitionDataset(
         data,

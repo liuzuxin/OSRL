@@ -44,6 +44,7 @@ def eval(args: EvalConfig):
     cdt_model = CDT(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
+        max_action=env.action_space.high[0],
         embedding_dim=cfg["embedding_dim"],
         seq_len=cfg["seq_len"],
         episode_len=cfg["episode_len"],
@@ -52,7 +53,6 @@ def eval(args: EvalConfig):
         attention_dropout=cfg["attention_dropout"],
         residual_dropout=cfg["residual_dropout"],
         embedding_dropout=cfg["embedding_dropout"],
-        max_action=cfg["max_action"],
         time_emb=cfg["time_emb"],
         use_rew=cfg["use_rew"],
         use_cost=cfg["use_cost"],
