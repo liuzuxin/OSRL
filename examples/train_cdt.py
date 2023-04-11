@@ -17,20 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import SequenceDataset
 from osrl.cdt import CDT, CDTTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.cdt_configs import CDTTrainConfig, \
-                                CDTCarCircleConfig, CDTCarRunConfig, \
-                                CDTAntRunConfig, CDTAntCircleConfig, \
-                                CDTDroneRunConfig, CDTDroneCircleConfig 
-
-
-DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": CDTCarCircleConfig,
-    "offline-AntRun-v0": CDTAntRunConfig,
-    "offline-DroneRun-v0": CDTDroneRunConfig,
-    "offline-DroneCircle-v0": CDTDroneCircleConfig,
-    "offline-CarRun-v0": CDTCarRunConfig,
-    "offline-AntCircle-v0": CDTAntCircleConfig,
-}
+from .configs.cdt_configs import CDTTrainConfig, CDT_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
@@ -39,10 +26,9 @@ def train(args: CDTTrainConfig):
 
     # setup logger
     cfg = asdict(args)
-    default_cfg = asdict(DEFAULT_CONFIG[args.task]())
+    default_cfg = asdict(CDT_DEFAULT_CONFIG[args.task]())
     if args.name is None:
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
-    print(args.logdir, args.group, args.name)
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
     logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)

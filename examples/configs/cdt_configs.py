@@ -230,3 +230,13 @@ class CDTCarReachConfig(CDTTrainConfig):
     max_reward: float = 300.0
     max_rew_decrease: float = 200
     min_reward: float = 1
+    
+    
+CDT_DEFAULT_CONFIG = {
+    "offline-CarCircle-v0": CDTCarCircleConfig,
+    "offline-AntRun-v0": CDTAntRunConfig,
+    "offline-DroneRun-v0": CDTDroneRunConfig,
+    "offline-DroneCircle-v0": CDTDroneCircleConfig,
+    "offline-CarRun-v0": CDTCarRunConfig,
+    "offline-AntCircle-v0": CDTAntCircleConfig,
+}

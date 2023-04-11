@@ -17,20 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import TransitionDataset
 from osrl.cpq import CPQ, CPQTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.cpq_configs import CPQTrainConfig, \
-                                CPQCarCircleConfig, CPQCarRunConfig, \
-                                CPQAntRunConfig, CPQAntCircleConfig, \
-                                CPQDroneRunConfig, CPQDroneCircleConfig 
-
-
-DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": CPQCarCircleConfig,
-    "offline-AntRun-v0": CPQAntRunConfig,
-    "offline-DroneRun-v0": CPQDroneRunConfig,
-    "offline-DroneCircle-v0": CPQDroneCircleConfig,
-    "offline-CarRun-v0": CPQCarRunConfig,
-    "offline-AntCircle-v0": CPQAntCircleConfig,
-}
+from .configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
@@ -39,7 +26,7 @@ def train(args: CPQTrainConfig):
 
     # setup logger
     cfg = asdict(args)
-    default_cfg = asdict(DEFAULT_CONFIG[args.task]())
+    default_cfg = asdict(CPQ_DEFAULT_CONFIG[args.task]())
     if args.name is None:
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
     print(args.logdir, args.group, args.name)

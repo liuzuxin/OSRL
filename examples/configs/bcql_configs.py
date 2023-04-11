@@ -100,3 +100,13 @@ class BCQLAntCircleConfig(BCQLTrainConfig):
     # training params
     task: str = "offline-AntCircle-v0"
     episode_len: int = 200
+
+
+BCQL_DEFAULT_CONFIG = {
+    "offline-CarCircle-v0": BCQLCarCircleConfig,
+    "offline-AntRun-v0": BCQLAntRunConfig,
+    "offline-DroneRun-v0": BCQLDroneRunConfig,
+    "offline-DroneCircle-v0": BCQLDroneCircleConfig,
+    "offline-CarRun-v0": BCQLCarRunConfig,
+    "offline-AntCircle-v0": BCQLAntCircleConfig,
+}

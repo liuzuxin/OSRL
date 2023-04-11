@@ -17,20 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import TransitionDataset
 from osrl.bcql import BCQL, BCQLTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.bcql_configs import BCQLTrainConfig, \
-                                BCQLCarCircleConfig, BCQLCarRunConfig, \
-                                BCQLAntRunConfig, BCQLAntCircleConfig, \
-                                BCQLDroneRunConfig, BCQLDroneCircleConfig 
-
-
-DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": BCQLCarCircleConfig,
-    "offline-AntRun-v0": BCQLAntRunConfig,
-    "offline-DroneRun-v0": BCQLDroneRunConfig,
-    "offline-DroneCircle-v0": BCQLDroneCircleConfig,
-    "offline-CarRun-v0": BCQLCarRunConfig,
-    "offline-AntCircle-v0": BCQLAntCircleConfig,
-}
+from .configs.bcql_configs import BCQLTrainConfig, BCQL_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
@@ -39,10 +26,9 @@ def train(args: BCQLTrainConfig):
 
     # setup logger
     cfg = asdict(args)
-    default_cfg = asdict(DEFAULT_CONFIG[args.task]())
+    default_cfg = asdict(BCQL_DEFAULT_CONFIG[args.task]())
     if args.name is None:
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
-    print(args.logdir, args.group, args.name)
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
     logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
