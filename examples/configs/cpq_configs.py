@@ -101,3 +101,13 @@ class CPQAntCircleConfig(CPQTrainConfig):
     # training params
     task: str = "offline-AntCircle-v0"
     episode_len: int = 200
+
+
+CPQ_DEFAULT_CONFIG = {
+    "offline-CarCircle-v0": CPQCarCircleConfig,
+    "offline-AntRun-v0": CPQAntRunConfig,
+    "offline-DroneRun-v0": CPQDroneRunConfig,
+    "offline-DroneCircle-v0": CPQDroneCircleConfig,
+    "offline-CarRun-v0": CPQCarRunConfig,
+    "offline-AntCircle-v0": CPQAntCircleConfig,
+}
