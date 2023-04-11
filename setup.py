@@ -9,7 +9,7 @@ from setuptools import find_packages, setup
 
 def get_version() -> str:
     # https://packaging.python.org/guides/single-sourcing-package-version/
-    init = open(os.path.join("saferl", "__init__.py"), "r").read().split()
+    init = open(os.path.join("osrl", "__init__.py"), "r").read().split()
     return init[init.index("__version__") + 2][1:-1]
 
 
@@ -70,7 +70,7 @@ setup(
     "A Modularized Implementation of Offline Safe Reinforcement Learning Algorithms",
     long_description=open("README.md", encoding="utf8").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/liuzuxin/safe-rl-lib",
+    url="https://github.com/liuzuxin/offline-safe-rl-baselines.git",
     author="Zijian Guo; Zuxin Liu",
     author_email="zuxin1997@gmail.com",
     license="MIT",
