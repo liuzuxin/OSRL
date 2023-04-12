@@ -13,7 +13,7 @@ from tqdm.auto import tqdm, trange  # noqa
 import torch
 import torch.nn as nn
 from saferl.utils import WandbLogger, DummyLogger
-from osrl.net import MLPGaussianPerturbationActor, \
+from osrl.common.net import MLPGaussianPerturbationActor, \
     EnsembleDoubleQCritic, VAE, LagrangianPIDController
 
 

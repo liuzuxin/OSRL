@@ -12,7 +12,7 @@ from torch.nn import functional as F  # noqa
 from torch import distributions as pyd
 from torch.distributions.beta import Beta
 
-from osrl.net import TransformerBlock, mlp, DiagGaussianActor
+from osrl.common.net import TransformerBlock, mlp, DiagGaussianActor
 from saferl.utils import WandbLogger, DummyLogger
 
 

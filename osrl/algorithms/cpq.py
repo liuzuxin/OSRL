@@ -13,7 +13,7 @@ from tqdm.auto import tqdm, trange  # noqa
 import torch
 import torch.nn as nn
 from saferl.utils import WandbLogger, DummyLogger
-from osrl.net import SquashedGaussianMLPActor, EnsembleQCritic, VAE
+from osrl.common.net import SquashedGaussianMLPActor, EnsembleQCritic, VAE
 
 
 class CPQ(nn.Module):

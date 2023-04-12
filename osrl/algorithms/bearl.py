@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 
 from saferl.utils import WandbLogger, DummyLogger
-from osrl.net import SquashedGaussianMLPActor, EnsembleDoubleQCritic, \
+from osrl.common.net import SquashedGaussianMLPActor, EnsembleDoubleQCritic, \
                      VAE, LagrangianPIDController
 
 

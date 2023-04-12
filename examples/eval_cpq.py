@@ -7,7 +7,7 @@ import pyrallis
 from pyrallis import field
 import torch
 
-from osrl.cpq import CPQ, CPQTrainer
+from osrl.algorithms import CPQ, CPQTrainer
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from saferl.utils.exp_util import load_config_and_model, seed_all
 

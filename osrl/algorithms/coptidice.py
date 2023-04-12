@@ -13,7 +13,7 @@ from torch import distributions as pyd
 from torch.distributions.beta import Beta
 
 from saferl.utils import WandbLogger, DummyLogger
-from osrl.net import SquashedGaussianMLPActor, EnsembleQCritic
+from osrl.common.net import SquashedGaussianMLPActor, EnsembleQCritic
 
 
 class COptiDICE(nn.Module):

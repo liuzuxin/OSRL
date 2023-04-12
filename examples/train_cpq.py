@@ -14,8 +14,8 @@ from tqdm.auto import trange  # noqa
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from saferl.utils import WandbLogger
 
-from osrl.dataset import TransitionDataset
-from osrl.cpq import CPQ, CPQTrainer
+from osrl.common import TransitionDataset
+from osrl.algorithms import CPQ, CPQTrainer
 from saferl.utils.exp_util import auto_name, seed_all
 from configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
 
