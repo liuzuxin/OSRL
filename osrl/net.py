@@ -102,14 +102,13 @@ class SquashedGaussianMLPActor(nn.Module):
                 obs,
                 deterministic=False,
                 with_logprob=True,
-                with_distribution=False):
+                with_distribution=False,
+                return_pretanh_value=False):
         net_out = self.net(obs)
         mu = self.mu_layer(net_out)
         log_std = self.log_std_layer(net_out)
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         std = torch.exp(log_std)
-
-        # print("actor: ", torch.sum(mu), torch.sum(std))
 
         # Pre-squash distribution and sample
         pi_distribution = Normal(mu, std)
@@ -131,6 +130,10 @@ class SquashedGaussianMLPActor(nn.Module):
         else:
             logp_pi = None
 
+        # for BEARL only
+        if return_pretanh_value:
+            return torch.tanh(pi_action), pi_action
+        
         pi_action = torch.tanh(pi_action)
 
         if with_distribution:
@@ -244,6 +247,15 @@ class VAE(nn.Module):
         a = F.relu(self.d1(torch.cat([obs, z], 1)))
         a = F.relu(self.d2(a))
         return self.act_lim * torch.tanh(self.d3(a))
+
+    # for BEARL only
+    def decode_multiple(self, obs, z=None, num_decode=10):
+        if z is None:
+            z = torch.randn((obs.shape[0], num_decode, self.latent_dim)).clamp(-0.5, 0.5).to(self.device)
+            
+        a = F.relu(self.d1(torch.cat([obs.unsqueeze(0).repeat(num_decode, 1, 1).permute(1, 0, 2), z], 2)))
+        a = F.relu(self.d2(a))
+        return torch.tanh(self.d3(a)), self.d3(a)
 
 
 class LagrangianPIDController:

@@ -34,7 +34,7 @@ class CPQTrainConfig:
     a_hidden_sizes: List[float] = field(default=[300, 300], is_mutable=True)
     c_hidden_sizes: List[float] = field(default=[400, 400], is_mutable=True)
     vae_hidden_sizes: int = 400
-    alpha_max: float = 0.2
+    alpha_max: float = 1.0
     sample_action_num: int = 10
     gamma: float = 0.99
     tau: float = 0.005
@@ -44,7 +44,7 @@ class CPQTrainConfig:
     num_qc: int = 1
     qc_scalar: float = 1.5
     # evaluation params
-    eval_episodes: int = 4
+    eval_episodes: int = 10
     eval_every: int = 2500
 
 

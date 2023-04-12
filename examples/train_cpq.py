@@ -17,7 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import TransitionDataset
 from osrl.cpq import CPQ, CPQTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from .configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
+from configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()

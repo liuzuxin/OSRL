@@ -17,7 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import TransitionDataset
 from osrl.bearl import BEARL, BEARLTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from .configs.bearl_configs import BEARLTrainConfig, BEARL_DEFAULT_CONFIG
+from configs.bearl_configs import BEARLTrainConfig, BEARL_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
@@ -43,3 +43,91 @@ def train(args: BEARLTrainConfig):
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
+    
+    # model & optimizer & scheduler setup
+    model = BEARL(
+        state_dim=env.observation_space.shape[0],
+        action_dim=env.action_space.shape[0],
+        max_action=env.action_space.high[0],
+        a_hidden_sizes=args.a_hidden_sizes,
+        c_hidden_sizes=args.c_hidden_sizes,
+        vae_hidden_sizes=args.vae_hidden_sizes,
+        sample_action_num=args.sample_action_num,
+        gamma=args.gamma,
+        tau=args.tau,
+        beta=args.beta,
+        lmbda=args.lmbda,
+        mmd_sigma=args.mmd_sigma,
+        target_mmd_thresh=args.target_mmd_thresh,
+        start_update_policy_step=args.start_update_policy_step,
+        num_q=args.num_q,
+        num_qc=args.num_qc,
+        PID=args.PID,
+        cost_limit=args.cost_limit,
+        episode_len=args.episode_len,
+        device=args.device,
+    )
+    print(f"Total parameters: {sum(p.numel() for p in model.parameters())}")
+
+    def checkpoint_fn():
+        return {"model_state": model.state_dict()}
+
+    logger.setup_checkpoint_fn(checkpoint_fn)
+
+    trainer = BEARLTrainer(model,
+                           env,
+                           logger=logger,
+                           actor_lr=args.actor_lr,
+                           critic_lr=args.critic_lr,
+                           vae_lr=args.vae_lr,
+                           reward_scale=args.reward_scale,
+                           cost_scale=args.cost_scale,
+                           device=args.device)
+ 
+    dataset = TransitionDataset(
+        data,
+        reward_scale=args.reward_scale,
+        cost_scale=args.cost_scale)
+    trainloader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        pin_memory=True,
+        num_workers=args.num_workers,
+    )
+    trainloader_iter = iter(trainloader)
+
+    # for saving the best
+    best_reward = -np.inf
+    best_cost = np.inf
+    best_idx = 0
+
+    for step in trange(args.update_steps, desc="Training"):
+        batch = next(trainloader_iter)
+        observations, next_observations, actions, rewards, costs, done = [
+            b.to(args.device) for b in batch
+        ]
+        trainer.train_one_step(observations, next_observations, actions, rewards, costs, done)
+
+        # evaluation
+        if (step + 1) % args.eval_every == 0 or step == args.update_steps - 1:
+            ret, cost, length = trainer.evaluate(args.eval_episodes)
+            logger.store(tab="eval", Cost=cost, Reward=ret, Length=length)
+
+            # save the current weight
+            logger.save_checkpoint()
+            # save the best weight
+            if cost < best_cost or (cost == best_cost and ret > best_reward):
+                best_cost = cost
+                best_reward = ret
+                best_idx = step
+                logger.save_checkpoint(suffix="best")
+
+            logger.store(tab="train", best_idx=best_idx)
+            logger.write(step, display=False)
+
+        else:
+            logger.write_without_reset(step)
+
+
+if __name__ == "__main__":
+    train()

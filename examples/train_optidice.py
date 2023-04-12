@@ -17,7 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import TransitionDataset
 from osrl.coptidice import COptiDICE, COptiDICETrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from .configs.coptidice_configs import COptiDICETrainConfig, COptiDICE_DEFAULT_CONFIG
+from configs.coptidice_configs import COptiDICETrainConfig, COptiDICE_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
@@ -45,3 +45,82 @@ def train(args: COptiDICETrainConfig):
     )
     env = OfflineEnvWrapper(env)
 
+    model = COptiDICE(
+        state_dim=env.observation_space.shape[0],
+        action_dim=env.action_space.shape[0],
+        max_action=env.action_space.high[0],
+        a_hidden_sizes=args.a_hidden_sizes,
+        c_hidden_sizes=args.c_hidden_sizes,
+        gamma=args.gamma,
+        alpha=args.alpha,
+        num_q=args.num_q,
+        num_qc=args.num_qc,
+        cost_limit=args.cost_limit,
+        episode_len=args.episode_len,
+        device=args.device,
+    )
+    
+    print(f"Total parameters: {sum(p.numel() for p in model.parameters())}")
+
+    def checkpoint_fn():
+        return {"model_state": model.state_dict()}
+
+    logger.setup_checkpoint_fn(checkpoint_fn)
+
+    trainer = COptiDICETrainer(model,
+                               env,
+                               logger=logger,
+                               actor_lr=args.actor_lr,
+                               critic_lr=args.critic_lr,
+                               scalar_lr=args.scalar_lr,
+                               reward_scale=args.reward_scale,
+                               cost_scale=args.cost_scale,
+                               device=args.device)
+
+    dataset = TransitionDataset(
+        data,
+        reward_scale=args.reward_scale,
+        cost_scale=args.cost_scale)
+    trainloader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        pin_memory=True,
+        num_workers=args.num_workers,
+    )
+    trainloader_iter = iter(trainloader)
+
+    # for saving the best
+    best_reward = -np.inf
+    best_cost = np.inf
+    best_idx = 0
+
+    for step in trange(args.update_steps, desc="Training"):
+        batch = next(trainloader_iter)
+        observations, next_observations, actions, rewards, costs, done = [
+            b.to(args.device) for b in batch
+        ]
+        trainer.train_one_step(observations, next_observations, actions, rewards, costs, done)
+
+        # evaluation
+        if (step + 1) % args.eval_every == 0 or step == args.update_steps - 1:
+            ret, cost, length = trainer.evaluate(args.eval_episodes)
+            logger.store(tab="eval", Cost=cost, Reward=ret, Length=length)
+
+            # save the current weight
+            logger.save_checkpoint()
+            # save the best weight
+            if cost < best_cost or (cost == best_cost and ret > best_reward):
+                best_cost = cost
+                best_reward = ret
+                best_idx = step
+                logger.save_checkpoint(suffix="best")
+
+            logger.store(tab="train", best_idx=best_idx)
+            logger.write(step, display=False)
+
+        else:
+            logger.write_without_reset(step)
+
+
+if __name__ == "__main__":
+    train()

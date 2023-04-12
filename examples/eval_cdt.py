@@ -37,6 +37,7 @@ def eval(args: EvalConfig):
         reward_scale=cfg["reward_scale"],
     )
     env = OfflineEnvWrapper(env)
+    env.set_target_cost(cfg["cost_limit"])
 
     target_entropy = -env.action_space.shape[0]
 
@@ -83,8 +84,8 @@ def eval(args: EvalConfig):
         seed_all(cfg["seed"])
         ret, cost, length = trainer.evaluate(args.eval_episodes, target_ret * cfg["reward_scale"],
                                             target_cost * cfg["cost_scale"])
-        print(f"Target reward {target_ret}, real reward {ret}; target cost {target_cost}, real cost {cost}")
-
+        normalized_ret, normalized_cost = env.get_normalized_score(ret, cost)
+        print(f"Target reward {target_ret}, real reward {ret}, normalized reward: {normalized_ret}; target cost {target_cost}, real cost {cost}, normalized cost: {normalized_cost}")
 
 if __name__ == "__main__":
     eval()

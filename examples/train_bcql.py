@@ -17,7 +17,7 @@ from saferl.utils import WandbLogger
 from osrl.dataset import TransitionDataset
 from osrl.bcql import BCQL, BCQLTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from .configs.bcql_configs import BCQLTrainConfig, BCQL_DEFAULT_CONFIG
+from configs.bcql_configs import BCQLTrainConfig, BCQL_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()

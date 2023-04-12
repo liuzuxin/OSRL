@@ -41,7 +41,7 @@ class CDTTrainConfig:
                                                      (300, 0), 
                                                      (400, 0), 
                                                      (200, 0))  # reward, cost
-    eval_episodes: int = 4
+    eval_episodes: int = 10
     eval_every: int = 2500
     # general params
     seed: int = 11

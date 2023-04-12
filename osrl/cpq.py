@@ -89,8 +89,6 @@ class CPQ(nn.Module):
         self.q_thres = cost_limit * (1 - self.gamma**self.episode_len) / (
                 1 - self.gamma) / self.episode_len
         self.qc_thres = qc_scalar * self.q_thres
-        print("Reward critic constraint(l): ", self.q_thres)
-        print("Cost critic constraint(lc): ", self.qc_thres)
 
     def _soft_update(self, tgt: nn.Module, src: nn.Module, tau: float) -> None:
         """Softly update the parameters of target module towards the parameters \
@@ -164,7 +162,7 @@ class CPQ(nn.Module):
             self.alpha += self.alpha_lr * (self.qc_thres - qc_ood.mean()).detach().item()
             self.alpha = np.clip(self.alpha, 0, self.alpha_max)
 
-        loss_cost_critic = self.cost_critic.loss(backup, qc_list) - self.alpha*qc_ood.mean()
+        loss_cost_critic = self.cost_critic.loss(backup, qc_list) - self.alpha*(qc_ood.mean() - self.qc_thres)
         self.cost_critic_optim.zero_grad()
         loss_cost_critic.backward()
         self.cost_critic_optim.step()
@@ -185,7 +183,7 @@ class CPQ(nn.Module):
         self.actor_optim.zero_grad()
         loss_actor.backward()
         self.actor_optim.step()
-        stats_actor = {"loss/loss_actor": loss_actor.item()}
+        stats_actor = {"loss/actor_loss": loss_actor.item()}
         
         for p in self.critic.parameters():
             p.requires_grad = True

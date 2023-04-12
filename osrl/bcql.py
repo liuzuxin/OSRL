@@ -83,8 +83,6 @@ class BCQL(nn.Module):
 
         self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len) / (
                 1 - self.gamma) / self.episode_len
-        print(f"Cost constraint: {self.qc_thres}")
-        
         self.controller = LagrangianPIDController(self.KP, self.KI, self.KD, self.qc_thres)
 
     def _soft_update(self, tgt: nn.Module, src: nn.Module, tau: float) -> None:
@@ -168,15 +166,9 @@ class BCQL(nn.Module):
         loss_actor.backward()
         self.actor_optim.step()
         
-        if self.device == "cpu":
-            qc_penalty = qc_penalty.data.numpy()
-            multiplier = multiplier.data.numpy()
-        else:
-            qc_penalty = qc_penalty.data.cpu().numpy()
-            multiplier = multiplier.data.cpu().numpy()
-        stats_actor = {"loss/loss_actor": loss_actor.item(),
-                       "loss/qc_penalty": qc_penalty,
-                       "loss/lagrangian": multiplier}
+        stats_actor = {"loss/actor_loss": loss_actor.item(),
+                       "loss/qc_penalty": qc_penalty.item(),
+                       "loss/lagrangian": multiplier.item()}
 
         for p in self.critic.parameters():
             p.requires_grad = True

@@ -35,6 +35,7 @@ def eval(args: EvalConfig):
         reward_scale=cfg["reward_scale"],
     )
     env = OfflineEnvWrapper(env)
+    env.set_target_cost(cfg["cost_limit"])
 
     cpq_model = CPQ(
         state_dim=env.observation_space.shape[0],
@@ -66,7 +67,8 @@ def eval(args: EvalConfig):
                          device=args.device)
 
     ret, cost, length = trainer.evaluate(args.eval_episodes)
-    print(f"Eval reward: {ret}, cost: {cost}, length: {length}")
+    normalized_ret, normalized_cost = env.get_normalized_score(ret, cost)
+    print(f"Eval reward: {ret}, normalized reward: {normalized_ret}; cost: {cost}, normalized cost: {normalized_cost}; length: {length}")
 
 
 if __name__ == "__main__":

@@ -21,30 +21,23 @@ class COptiDICETrainConfig:
     thread: int = 4
     reward_scale: float = 0.1
     cost_scale: float = 1
-    actor_lr: float = 0.0001
+    actor_lr: float = 0.001
     critic_lr: float = 0.001
-    alpha_lr: float = 0.001
-    vae_lr: float = 0.001
+    scalar_lr: float = 0.001
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
     update_steps: int = 100_000
     num_workers: int = 8
     # model params
-    a_hidden_sizes: List[float] = field(default=[300, 300], is_mutable=True)
-    c_hidden_sizes: List[float] = field(default=[400, 400], is_mutable=True)
-    vae_hidden_sizes: int = 400
-    alpha_max: float = 0.2
-    sample_action_num: int = 10
+    a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
+    c_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
+    alpha: float = 0.5
     gamma: float = 0.99
-    tau: float = 0.005
-    lmbda: float = 0.75
-    beta: float = 1.5
     num_q: int = 1
     num_qc: int = 1
-    qc_scalar: float = 1.5
     # evaluation params
-    eval_episodes: int = 4
+    eval_episodes: int = 10
     eval_every: int = 2500
 
 
