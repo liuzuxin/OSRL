@@ -196,10 +196,7 @@ class BCQL(nn.Module):
         '''
         obs = torch.tensor(obs[None, ...], dtype=torch.float32).to(self.device)
         act = self.actor(obs, self.vae.decode(obs))
-        if self.device == "cpu":
-            act = act.data.numpy()
-        else:
-            act = act.data.cpu().numpy()
+        act = act.data.numpy() if self.device == "cpu" else act.data.cpu().numpy()
         return np.squeeze(act, axis=0), None
 
 

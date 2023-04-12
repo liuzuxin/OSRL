@@ -22,6 +22,53 @@ def discounted_cumsum(x: np.ndarray, gamma: float) -> np.ndarray:
     return cumsum
 
 
+def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: str, 
+                       frontier_fn=None, frontier_range=None):
+
+    done_mask = (dataset["terminals"] == 1) | (dataset["timeouts"] == 1)
+    n_transitions = dataset["observations"].shape[0]
+    idx = np.arange(n_transitions)
+    done_idx = idx[done_mask]
+    selected_transition = np.zeros((n_transitions,), dtype=int)
+    dataset["cost_returns"] = np.zeros_like(dataset["costs"])
+    
+    for i in range(done_idx.shape[0]-1):
+        
+        start = 0 if i == 0 else done_idx[i] + 1
+        end = done_idx[i] + 1 if i == 0 else done_idx[i+1] + 1
+        
+        cost_returns = discounted_cumsum(dataset["costs"][start:end], gamma=gamma)
+        reward_returns = discounted_cumsum(dataset["rewards"][start:end], gamma=gamma)
+        dataset["cost_returns"][start:end] = cost_returns[0]
+
+        if bc_mode == "all" or bc_mode == "multi-task":
+            selected_transition[start:end] = 1
+        elif bc_mode == "safe":
+            # safe trajectories
+            if cost_returns[0] <= cost_limit:
+                selected_transition[start:end] = 1
+        elif bc_mode == "risky":
+            # high cost trajectories
+            if cost_returns[0] >= 2 * cost_limit:
+                selected_transition[start:end] = 1
+        elif bc_mode == "frontier":
+            # trajectories that are near the Pareto frontier
+            if frontier_fn(cost_returns[0]) - frontier_range <= reward_returns[0] and \
+               reward_returns[0] <= frontier_fn(cost_returns[0]) + frontier_range:
+                selected_transition[start:end] = 1
+        elif bc_mode == "boundary":
+            # trajectories that are near the cost limit
+            if 0.5 * cost_limit < cost_returns[0] and cost_returns[0] <= 1.5 * cost_limit:
+                selected_transition[start:end] = 1
+
+    for k, v in dataset.items():
+        dataset[k] = v[selected_transition == 1]
+    if bc_mode == "multi-task":
+        dataset["observations"] = np.hstack((dataset["observations"], dataset["cost_returns"].reshape(-1, 1)))
+
+    print(f"original size = {n_transitions}, cost limit = {cost_limit}, filtered size = {np.sum(selected_transition == 1)}")
+
+
 def process_sequence_dataset(dataset: dict, cost_reverse: bool = False):
     '''
     Process the d4rl format dataset to the Sequence dataset.

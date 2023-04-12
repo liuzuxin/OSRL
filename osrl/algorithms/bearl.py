@@ -283,10 +283,8 @@ class BEARL(nn.Module):
         '''
         obs = torch.tensor(obs[None, ...], dtype=torch.float32).to(self.device)
         a, logp_a = self._actor_forward(obs, deterministic, with_logprob)
-        if self.device == "cpu":
-            a, logp_a = a.data.numpy(), logp_a.data.numpy()
-        else:
-            a, logp_a = a.data.cpu().numpy(), logp_a.data.cpu().numpy()
+        a = a.data.numpy() if self.device == "cpu" else a.data.cpu().numpy()
+        logp_a = logp_a.data.numpy() if self.device == "cpu" else logp_a.data.cpu().numpy()
         return np.squeeze(a, axis=0), np.squeeze(logp_a)
 
     
