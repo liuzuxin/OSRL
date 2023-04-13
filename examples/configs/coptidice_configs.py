@@ -32,7 +32,7 @@ class COptiDICETrainConfig:
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
     c_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
-    alpha: float = 0.01
+    alpha: float = 0.5
     gamma: float = 0.99
     cost_ub_epsilon: float = 0.01
     f_type: str = "softchi"

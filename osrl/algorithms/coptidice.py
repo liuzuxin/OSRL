@@ -75,8 +75,8 @@ class COptiDICE(nn.Module):
         
         self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len) / (
                 1 - self.gamma) / self.episode_len
-        self.tau = torch.zeros(1, requires_grad=True, device=self.device)
-        self.lmbda = torch.zeros(1, requires_grad=True, device=self.device)
+        self.tau = torch.ones(1, requires_grad=True, device=self.device)
+        self.lmbda = torch.ones(1, requires_grad=True, device=self.device)
         self.actor = SquashedGaussianMLPActor(
             self.state_dim, self.action_dim, self.a_hidden_sizes, nn.ReLU).to(self.device)
         self.nu_network = EnsembleQCritic(self.state_dim, 0, self.c_hidden_sizes, 
@@ -97,19 +97,16 @@ class COptiDICE(nn.Module):
         e_nu_lambda = rewards - self._lmbda.detach() * costs
         e_nu_lambda += self.gamma * (1.0 - done) * nu_s_next - nu_s
         # w_{lambda,\nu}^*(s,a)
-        w_sa = F.relu(self.f_prime_inv_fn(e_nu_lambda / self._alpha))
+        w_sa = F.relu(self.f_prime_inv_fn(e_nu_lambda / self.alpha))
         return nu_s, nu_s_next, e_nu_lambda, w_sa
         
     def update(self, batch):
         observations, next_observations, actions, rewards, costs, done, is_init = batch
         # 1. Learn the optimal distribution
         self._lmbda = F.softplus(self.lmbda) # lmbda >= 0
-        self._alpha = self.alpha
         
         nu_s, nu_s_next, e_nu_lambda, w_sa = self._optimal_w(
             observations, next_observations, rewards, costs, done)
-        # print(f"nu_s.shape = {nu_s.shape}, nu_s_next.shape = {nu_s_next.shape}, e_nu_lambda.shape = {e_nu_lambda.shape}, w_sa.shape = {w_sa.shape}")
-        # print(f"is_init.shape = {is_init.shape}")
         nu_init = nu_s * is_init / self.init_state_propotion
         w_sa_no_grad = w_sa.detach()
         # divergence between distributions of policy & dataset
@@ -118,6 +115,11 @@ class COptiDICE(nn.Module):
         # 1.1 (chi, tau) loss
         if self.cost_ub_epsilon == 0:
             weighted_c = (w_sa_no_grad * costs).mean()
+            chi_loss = torch.zeros(1, device=self.device)
+            tau_loss = torch.zeros(1, device=self.device)
+            D_kl = torch.zeros(1, device=self.device)
+            self._tau = F.softplus(self.tau)
+
         else:
             self._tau = F.softplus(self.tau)
             batch_size = observations.shape[0]
@@ -131,7 +133,6 @@ class COptiDICE(nn.Module):
             logits = ell / self._tau.detach()
             weights = torch.softmax(logits, dim=0) * batch_size
             log_weights = torch.log_softmax(logits, dim=0) + np.log(batch_size)
-            # print(f"weights.shape = {weights.shape}, log_weights.shape = {log_weights.shape}")
             D_kl = (weights * log_weights - weights + 1).mean()
             
             # an upper bound estimation
@@ -149,7 +150,7 @@ class COptiDICE(nn.Module):
 
         # 1.2 nu loss
         nu_loss = (1 - self.gamma) * nu_init.mean() + \
-            (w_sa * e_nu_lambda - self._alpha * self.f_fn(w_sa)).mean()
+            (w_sa * e_nu_lambda - self.alpha * self.f_fn(w_sa)).mean()
         td_error = e_nu_lambda.pow(2).mean()
         
         self.nu_optim.zero_grad()
@@ -172,7 +173,6 @@ class COptiDICE(nn.Module):
         with torch.no_grad():
             _,_, e_nu_lambda, w_sa = self._optimal_w(
                 observations, next_observations, rewards, costs, done)
-            w_sa = w_sa.detach()
         
         actor_loss = - (w_sa * dist.log_prob(actions + act_eps).sum(axis=-1)).mean()
         self.actor_optim.zero_grad()
@@ -180,13 +180,15 @@ class COptiDICE(nn.Module):
         self.actor_optim.step()
 
         stats_loss = {"loss/chi_loss": chi_loss.item(),
-                    "loss/tau_loss": tau_loss.item(),
-                    "loss/D_kl": D_kl.item(),
-                    "loss/Df": Df.item(),
-                    "loss/td_error": td_error.item(),
-                    "loss/nu_loss": nu_loss.item(),
-                    "loss/lmbda_loss": lmbda_loss.item(),
-                    "loss/actor_loss": actor_loss.item()}
+                      "loss/tau_loss": tau_loss.item(),
+                      "loss/D_kl": D_kl.item(),
+                      "loss/Df": Df.item(),
+                      "loss/td_error": td_error.item(),
+                      "loss/nu_loss": nu_loss.item(),
+                      "loss/lmbda_loss": lmbda_loss.item(),
+                      "loss/actor_loss": actor_loss.item(),
+                      "loss/tau": self._tau.item(),
+                      "loss/lmbda": self._lmbda.item()}
         return stats_loss
     
     def setup_optimiers(self, actor_lr, critic_lr, scalar_lr):
