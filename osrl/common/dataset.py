@@ -482,20 +482,37 @@ class TransitionDataset(IterableDataset):
     def __init__(self,
                  dataset: dict,
                  reward_scale: float = 1.0,
-                 cost_scale: float = 1.0):
+                 cost_scale: float = 1.0,
+                 state_init: bool = False):
         self.dataset = dataset
         self.reward_scale = reward_scale
         self.cost_scale = cost_scale
         self.sample_prob = None
+        self.state_init = state_init
         self.dataset_size = self.dataset["observations"].shape[0]
         
+        self.dataset["done"] = np.logical_or(self.dataset["terminals"], self.dataset["timeouts"]).astype(np.float32)
+        if self.state_init:
+            self.dataset["is_init"] = self.dataset["done"].copy()
+            self.dataset["is_init"][1:] = self.dataset["is_init"][:-1]
+            self.dataset["is_init"][0] = 1.0
+
+    def get_dataset_states(self):
+        init_state_propotion = self.dataset["is_init"].mean()
+        obs_std = self.dataset["observations"].std(0, keepdims=True)
+        act_std = self.dataset["actions"].std(0, keepdims=True)
+        return init_state_propotion, obs_std, act_std
+
     def __prepare_sample(self, idx):
         observations = self.dataset["observations"][idx, :]
         next_observations = self.dataset["next_observations"][idx, :]
         actions = self.dataset["actions"][idx, :]
         rewards = self.dataset["rewards"][idx] * self.reward_scale
         costs = self.dataset["costs"][idx] * self.cost_scale
-        done = np.logical_or(self.dataset["terminals"][idx], self.dataset["timeouts"][idx]).astype(np.float32)
+        done = self.dataset["done"][idx]
+        if self.state_init:
+            is_init = self.dataset["is_init"][idx]
+            return observations, next_observations, actions, rewards, costs, done, is_init
         return observations, next_observations, actions, rewards, costs, done
 
     def __iter__(self):

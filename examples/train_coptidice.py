@@ -44,17 +44,38 @@ def train(args: COptiDICETrainConfig):
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
-
+    
+    # setup dataset
+    dataset = TransitionDataset(
+        data,
+        reward_scale=args.reward_scale,
+        cost_scale=args.cost_scale,
+        state_init=True)
+    trainloader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        pin_memory=True,
+        num_workers=args.num_workers,
+    )
+    trainloader_iter = iter(trainloader)
+    init_s_propotion, obs_std, act_std = dataset.get_dataset_states()
+    
+    # setup model
     model = COptiDICE(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
         max_action=env.action_space.high[0],
+        f_type=args.f_type,
+        init_state_propotion=init_s_propotion,
+        observations_std=obs_std,
+        actions_std=act_std,
         a_hidden_sizes=args.a_hidden_sizes,
         c_hidden_sizes=args.c_hidden_sizes,
         gamma=args.gamma,
         alpha=args.alpha,
-        num_q=args.num_q,
-        num_qc=args.num_qc,
+        cost_ub_epsilon=args.cost_ub_epsilon,
+        num_nu=args.num_nu,
+        num_chi=args.num_chi,
         cost_limit=args.cost_limit,
         episode_len=args.episode_len,
         device=args.device,
@@ -77,18 +98,6 @@ def train(args: COptiDICETrainConfig):
                                cost_scale=args.cost_scale,
                                device=args.device)
 
-    dataset = TransitionDataset(
-        data,
-        reward_scale=args.reward_scale,
-        cost_scale=args.cost_scale)
-    trainloader = DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        pin_memory=True,
-        num_workers=args.num_workers,
-    )
-    trainloader_iter = iter(trainloader)
-
     # for saving the best
     best_reward = -np.inf
     best_cost = np.inf
@@ -96,10 +105,8 @@ def train(args: COptiDICETrainConfig):
 
     for step in trange(args.update_steps, desc="Training"):
         batch = next(trainloader_iter)
-        observations, next_observations, actions, rewards, costs, done = [
-            b.to(args.device) for b in batch
-        ]
-        trainer.train_one_step(observations, next_observations, actions, rewards, costs, done)
+        batch = [b.to(args.device) for b in batch]
+        trainer.train_one_step(batch)
 
         # evaluation
         if (step + 1) % args.eval_every == 0 or step == args.update_steps - 1:

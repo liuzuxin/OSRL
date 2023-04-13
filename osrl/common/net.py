@@ -120,13 +120,8 @@ class SquashedGaussianMLPActor(nn.Module):
 
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
-            # NOTE: The correction formula is a little bit magic. To get an understanding
-            # of where it comes from, check out the original SAC paper (arXiv 1801.01290)
-            # and look in appendix C. This is a more numerically-stable equivalent to Eq 21.
-            # Try deriving it yourself as a (very difficult) exercise. :)
             logp_pi = pi_distribution.log_prob(pi_action).sum(axis=-1)
-            logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
-                axis=1)
+            logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(axis=1)
         else:
             logp_pi = None
 
@@ -153,11 +148,11 @@ class EnsembleQCritic(nn.Module):
             for i in range(num_q)
         ])
 
-    def forward(self, obs, act):
+    def forward(self, obs, act=None):
         # Squeeze is critical to ensure value has the right shape.
         # Without squeeze, the training stability will be greatly affected!
         # For instance, shape [3] - shape[3,1] = shape [3, 3] instead of shape [3]
-        data = torch.cat([obs, act], dim=-1)
+        data = obs if act is None else torch.cat([obs, act], dim=-1)
         return [torch.squeeze(q(data), -1) for q in self.q_nets]
 
     def predict(self, obs, act):
