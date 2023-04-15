@@ -17,7 +17,9 @@ from osrl.common.net import SquashedGaussianMLPActor, EnsembleQCritic
 
 
 def get_f_div_fn(f_type: str):
-    """Returns a function that computes the provided f-divergence type."""
+    """
+    Returns a function that computes the provided f-divergence type.
+    """
     f_fn = None
     f_prime_inv_fn = None
 
@@ -39,6 +41,32 @@ def get_f_div_fn(f_type: str):
 
 
 class COptiDICE(nn.Module):
+    """
+    Offline Constrained Policy Optimization 
+    via stationary DIstribution Correction Estimation (COptiDICE)
+    
+    Args:
+        state_dim (int): dimension of the state space.
+        action_dim (int): dimension of the action space.
+        max_action (float): Maximum action value.
+        f_type (str): The type of f-divergence function to use.
+        init_state_propotion (float): The proportion of initial states to include in the optimization.
+        observations_std (np.ndarray): The standard deviation of the observation space.
+        actions_std (np.ndarray): The standard deviation of the action space.
+        a_hidden_sizes (list): List of integers specifying the sizes 
+                               of the layers in the actor network.
+        c_hidden_sizes (list): List of integers specifying the sizes 
+                               of the layers in the critic network (nu and chi networks).
+        gamma (float): Discount factor for the reward.
+        alpha (float): The coefficient for the cost term in the loss function.
+        cost_ub_epsilon (float): A small value added to the upper bound on the cost term.
+        num_nu (int): The number of critics to use for the nu-network.
+        num_chi (int): The number of critics to use for the chi-network.
+        cost_limit (int): Upper limit on the cost per episode.
+        episode_len (int): Maximum length of an episode.
+        device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
+    """
+    
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
@@ -201,9 +229,9 @@ class COptiDICE(nn.Module):
     def act(self, obs: np.ndarray, 
             deterministic: bool = False, 
             with_logprob: bool = False):
-        '''
+        """
         Given a single obs, return the action, logp.
-        '''
+        """
         obs = torch.tensor(obs[None, ...], dtype=torch.float32).to(self.device)
         a, logp_a = self.actor.forward(obs, deterministic, with_logprob)
         a = a.data.numpy() if self.device == "cpu" else a.data.cpu().numpy()
@@ -212,6 +240,21 @@ class COptiDICE(nn.Module):
 
 
 class COptiDICETrainer:
+    """
+    COptiDICE trainer
+    
+    Args:
+        model (COptiDICE): The COptiDICE model to train.
+        env (gym.Env): The OpenAI Gym environment to train the model in.
+        logger (WandbLogger or DummyLogger): The logger to use for tracking training progress.
+        actor_lr (float): learning rate for actor
+        critic_lr (float): learning rate for critic (nu and chi networks)
+        scalar_lr (float, optional): The learning rate for the scalar (tau, lmbda).
+        reward_scale (float): The scaling factor for the reward signal.
+        cost_scale (float): The scaling factor for the constraint cost.
+        device (str): The device to use for training (e.g. "cpu" or "cuda").
+    """
+    
     def __init__(self,
                  model: COptiDICE,
                  env: gym.Env,
@@ -235,6 +278,9 @@ class COptiDICETrainer:
         self.logger.store(**stats_loss)
     
     def evaluate(self, eval_episodes):
+        """
+        Evaluates the performance of the model on a number of episodes.
+        """
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(eval_episodes, desc="Evaluating...", leave=False):
@@ -248,6 +294,9 @@ class COptiDICETrainer:
         
     @torch.no_grad()
     def rollout(self):
+        """
+        Evaluates the performance of the model on a single episode.
+        """
         obs, info = self.env.reset()
         episode_ret, episode_cost, episode_len = 0.0, 0.0, 0
         for _ in range(self.model.episode_len):

@@ -15,6 +15,19 @@ from osrl.common.net import MLPActor
 
 
 class BC(nn.Module):
+    """
+    Behavior Cloning (BC)
+    
+    Args:
+        state_dim (int): dimension of the state space.
+        action_dim (int): dimension of the action space.
+        max_action (float): Maximum action value.
+        a_hidden_sizes (list, optional): List of integers specifying the sizes 
+            of the layers in the actor network.
+        episode_len (int, optional): Maximum length of an episode.
+        device (str, optional): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
+    """
+
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
@@ -22,9 +35,7 @@ class BC(nn.Module):
                  a_hidden_sizes: list = [128, 128],
                  episode_len: int = 300,
                  device: str = "cpu"):
-        """
-        Behavior Cloning
-        """
+
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -60,8 +71,18 @@ class BC(nn.Module):
 
 class BCTrainer:
     """
-    Constraints Penalized Q-learning Trainer
+    Behavior Cloning Trainer
+    
+    Args:
+        model (BC): The BC model to be trained.
+        env (gym.Env): The OpenAI Gym environment to train the model in.
+        logger (WandbLogger or DummyLogger): The logger to use for tracking training progress.
+        actor_lr (float): learning rate for actor
+        bc_mode (str): specify bc mode
+        cost_limit (int): Upper limit on the cost per episode.
+        device (str): The device to use for training (e.g. "cpu" or "cuda").
     """
+
     def __init__(
             self,
             model: BC,
@@ -85,11 +106,17 @@ class BCTrainer:
         self.cost_limit = target_cost
         
     def train_one_step(self, observations, actions):
+        """
+        Trains the model by updating the actor.
+        """
         # update actor
         loss_actor, stats_actor = self.model.actor_loss(observations, actions)
         self.logger.store(**stats_actor)
         
     def evaluate(self, eval_episodes):
+        """
+        Evaluates the performance of the model on a number of episodes.
+        """
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(eval_episodes, desc="Evaluating...", leave=False):
@@ -102,6 +129,9 @@ class BCTrainer:
         
     @torch.no_grad()
     def rollout(self):
+        """
+        Evaluates the performance of the model on a single episode.
+        """
         episode_ret, episode_cost, episode_len = 0.0, 0.0, 0
         obs, info = self.env.reset()
         if self.bc_mode == "multi-task":

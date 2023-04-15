@@ -17,6 +17,31 @@ from osrl.common.net import SquashedGaussianMLPActor, EnsembleQCritic, VAE
 
 
 class CPQ(nn.Module):
+    """
+    Constraints Penalized Q-Learning (CPQ)
+
+    Args:
+        state_dim (int): dimension of the state space.
+        action_dim (int): dimension of the action space.
+        max_action (float): Maximum action value.
+        a_hidden_sizes (list): List of integers specifying the sizes 
+                               of the layers in the actor network.
+        c_hidden_sizes (list): List of integers specifying the sizes 
+                               of the layers in the critic network.
+        vae_hidden_sizes (int): Number of hidden units in the VAE. 
+        alpha_max (float): Maximum value for the Lagrangian multiplier.
+        sample_action_num (int): Number of action samples to draw. 
+        gamma (float): Discount factor for the reward.
+        tau (float): Soft update coefficient for the target networks. 
+        beta (float): Weight of the KL divergence term.
+        num_q (int): Number of Q networks in the ensemble.
+        num_qc (int): Number of cost Q networks in the ensemble.
+        qc_scalar (float): Scaling factor for the cost critic threshold.
+        cost_limit (int): Upper limit on the cost per episode.
+        episode_len (int): Maximum length of an episode.
+        device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
+    """
+    
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
@@ -28,7 +53,6 @@ class CPQ(nn.Module):
                  sample_action_num: int = 10,
                  gamma: float = 0.99,
                  tau: float = 0.005,
-                 lmbda: float = 0.75,
                  beta: float = 1.5,
                  num_q: int = 1,
                  num_qc: int = 1,
@@ -36,16 +60,7 @@ class CPQ(nn.Module):
                  cost_limit: int = 10,
                  episode_len: int = 300,
                  device: str = "cpu"):
-        """
-        Constraints Penalized Q-Learning (CPQ)
-        
-        @param alpha (float): Entropy regularization coefficient. (Equivalent to 
-            inverse of reward scale in the original SAC paper.)
-        @param gamma (float): Discount factor. (Always between 0 and 1.)
-        @param polyak (float): Interpolation factor in polyak averaging for target 
-        @param num_q (int): number of models in the q-ensemble critic.
 
-        """
         super().__init__()
         self.a_hidden_sizes = a_hidden_sizes
         self.c_hidden_sizes = c_hidden_sizes
@@ -54,7 +69,6 @@ class CPQ(nn.Module):
         self.tau = tau
         self.beta = beta
         self.cost_limit = cost_limit
-        self.lmbda = lmbda
         self.num_q = num_q
         self.num_qc = num_qc
         self.qc_scalar = qc_scalar
@@ -91,8 +105,10 @@ class CPQ(nn.Module):
         self.qc_thres = qc_scalar * self.q_thres
 
     def _soft_update(self, tgt: nn.Module, src: nn.Module, tau: float) -> None:
-        """Softly update the parameters of target module towards the parameters \
-        of source module."""
+        """
+        Softly update the parameters of target module 
+        towards the parameters of source module.
+        """
         for tgt_param, src_param in zip(tgt.parameters(), src.parameters()):
             tgt_param.data.copy_(tau * src_param.data + (1 - tau) * tgt_param.data)
 
@@ -192,7 +208,9 @@ class CPQ(nn.Module):
         return loss_actor, stats_actor
         
     def sync_weight(self):
-        """Soft-update the weight for the target network."""
+        """
+        Soft-update the weight for the target network.
+        """
         self._soft_update(self.critic_old, self.critic, self.tau)
         self._soft_update(self.cost_critic_old, self.cost_critic, self.tau)
         self._soft_update(self.actor_old, self.actor, self.tau)
@@ -207,9 +225,9 @@ class CPQ(nn.Module):
     def act(self, obs: np.ndarray, 
             deterministic: bool = False, 
             with_logprob: bool = False):
-        '''
+        """
         Given a single obs, return the action, logp.
-        '''
+        """
         obs = torch.tensor(obs[None, ...], dtype=torch.float32).to(self.device)
         a, logp_a = self._actor_forward(obs, deterministic, with_logprob)
         a = a.data.numpy() if self.device == "cpu" else a.data.cpu().numpy()
@@ -220,7 +238,20 @@ class CPQ(nn.Module):
 class CPQTrainer:
     """
     Constraints Penalized Q-learning Trainer
+    
+    Args:
+        model (CPQ): The CPQ model to be trained.
+        env (gym.Env): The OpenAI Gym environment to train the model in.
+        logger (WandbLogger or DummyLogger): The logger to use for tracking training progress.
+        actor_lr (float): learning rate for actor
+        critic_lr (float): learning rate for critic
+        alpha_lr (float): learning rate for alpha
+        vae_lr (float): learning rate for vae
+        reward_scale (float): The scaling factor for the reward signal.
+        cost_scale (float): The scaling factor for the constraint cost.
+        device (str): The device to use for training (e.g. "cpu" or "cuda").
     """
+    
     def __init__(
             self,
             model: CPQ,
@@ -262,6 +293,9 @@ class CPQTrainer:
         self.logger.store(**stats_actor)
     
     def evaluate(self, eval_episodes):
+        """
+        Evaluates the performance of the model on a number of episodes.
+        """
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(eval_episodes, desc="Evaluating...", leave=False):
@@ -275,6 +309,9 @@ class CPQTrainer:
         
     @torch.no_grad()
     def rollout(self):
+        """
+        Evaluates the performance of the model on a single episode.
+        """
         obs, info = self.env.reset()
         episode_ret, episode_cost, episode_len = 0.0, 0.0, 0
         for _ in range(self.model.episode_len):

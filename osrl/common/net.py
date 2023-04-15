@@ -11,6 +11,18 @@ import math
 
 
 def mlp(sizes, activation, output_activation=nn.Identity):
+    """
+    Creates a multi-layer perceptron with the specified sizes and activations.
+
+    Args:
+        sizes (list): A list of integers specifying the size of each layer in the MLP.
+        activation (nn.Module): The activation function to use for all layers except the output layer.
+        output_activation (nn.Module): The activation function to use for the output layer. Defaults to nn.Identity.
+
+    Returns:
+        nn.Sequential: A PyTorch Sequential model representing the MLP.
+    """
+
     layers = []
     for j in range(len(sizes) - 1):
         act = activation if j < len(sizes) - 2 else output_activation
@@ -20,6 +32,18 @@ def mlp(sizes, activation, output_activation=nn.Identity):
 
 
 class MLPGaussianPerturbationActor(nn.Module):
+    """
+    A MLP actor that adds Gaussian noise to the output.
+
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        hidden_sizes (List[int]): The sizes of the hidden layers in the neural network.
+        activation (Type[nn.Module]): The activation function to use between layers.
+        phi (float): The standard deviation of the Gaussian noise to add to the output.
+        act_limit (float): The absolute value of the limits of the action space.
+    """
+
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, phi=0.05, act_limit=1):
         super().__init__()
         pi_sizes = [obs_dim + act_dim] + list(hidden_sizes) + [act_dim]
@@ -34,6 +58,16 @@ class MLPGaussianPerturbationActor(nn.Module):
 
 
 class MLPActor(nn.Module):
+    """
+    A MLP actor
+    
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        hidden_sizes (List[int]): The sizes of the hidden layers in the neural network.
+        activation (Type[nn.Module]): The activation function to use between layers.
+        act_limit (float, optional): The upper limit of the action space.
+    """
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit=1):
         super().__init__()
         pi_sizes = [obs_dim] + list(hidden_sizes) + [act_dim]
@@ -46,6 +80,18 @@ class MLPActor(nn.Module):
 
 
 class MLPGaussianActor(nn.Module):
+    """
+    A MLP Gaussian actor
+    
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        action_low (np.ndarray): A 1D numpy array of lower bounds for each action dimension.
+        action_high (np.ndarray): A 1D numpy array of upper bounds for each action dimension.
+        hidden_sizes (List[int]): The sizes of the hidden layers in the neural network.
+        activation (Type[nn.Module]): The activation function to use between layers.
+        device (str): The device to use for computation (cpu or cuda).
+    """
     def __init__(self, obs_dim, act_dim, action_low, action_high, hidden_sizes,
                  activation, device="cpu"):
         super().__init__()
@@ -90,8 +136,15 @@ LOG_STD_MAX = 2
 LOG_STD_MIN = -20
 class SquashedGaussianMLPActor(nn.Module):
     '''
-    Probablistic actor, can also be used as a deterministic actor
+    A MLP Gaussian actor, can also be used as a deterministic actor
+    
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        hidden_sizes (List[int]): The sizes of the hidden layers in the neural network.
+        activation (Type[nn.Module]): The activation function to use between layers.
     '''
+
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
         super().__init__()
         self.net = mlp([obs_dim] + list(hidden_sizes), activation, activation)
@@ -139,7 +192,15 @@ class SquashedGaussianMLPActor(nn.Module):
 class EnsembleQCritic(nn.Module):
     '''
     An ensemble of Q network to address the overestimation issue.
+    
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        hidden_sizes (List[int]): The sizes of the hidden layers in the neural network.
+        activation (Type[nn.Module]): The activation function to use between layers.
+        num_q (float): The number of Q networks to include in the ensemble.
     '''
+
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, num_q=2):
         super().__init__()
         assert num_q >= 1, "num_q param should be greater than 1"
@@ -168,7 +229,15 @@ class EnsembleQCritic(nn.Module):
 class EnsembleDoubleQCritic(nn.Module):
     '''
     An ensemble of double Q network to address the overestimation issue.
+    
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        hidden_sizes (List[int]): The sizes of the hidden layers in the neural network.
+        activation (Type[nn.Module]): The activation function to use between layers.
+        num_q (float): The number of Q networks to include in the ensemble.
     '''
+
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, num_q=2):
         super().__init__()
         assert num_q >= 1, "num_q param should be greater than 1"
@@ -205,6 +274,14 @@ class EnsembleDoubleQCritic(nn.Module):
 class VAE(nn.Module):
     """
     Variational Auto-Encoder
+    
+    Args:
+        obs_dim (int): The dimension of the observation space.
+        act_dim (int): The dimension of the action space.
+        hidden_size (int): The number of hidden units in the encoder and decoder networks.
+        latent_dim (int): The dimensionality of the latent space.
+        act_lim (float): The upper limit of the action space.
+        device (str): The device to use for computation (cpu or cuda).
     """
     def __init__(self, obs_dim, act_dim, hidden_size, latent_dim, act_lim, device="cpu"):
         super(VAE, self).__init__()
@@ -256,7 +333,14 @@ class VAE(nn.Module):
 class LagrangianPIDController:
     '''
     Lagrangian multiplier controller
+    
+    Args:
+        KP (float): The proportional gain.
+        KI (float): The integral gain.
+        KD (float): The derivative gain.
+        thres (float): The setpoint for the controller.
     '''
+
     def __init__(self, KP, KI, KD, thres) -> None:
         super().__init__()
         self.KP = KP
@@ -382,23 +466,21 @@ class SquashedNormal(pyd.transformed_distribution.TransformedDistribution):
         return mu
 
     def entropy(self, N=1):
-        # sample from the distribution and then compute
-        # the empirical entropy:
+        # sample from the distribution and then compute the empirical entropy:
         x = self.rsample((N, ))
         log_p = self.log_prob(x)
 
-        # log_p: (batch_size, context_len, action_dim),
         return -log_p.mean(axis=0).sum(axis=2)
 
     def log_likelihood(self, x):
-        # log_prob(x): (batch_size, context_len, action_dim)
         # sum up along the action dimensions
-        # Return tensor shape: (batch_size, context_len)
         return self.log_prob(x).sum(axis=2)
 
 
 class DiagGaussianActor(nn.Module):
-    """torch.distributions implementation of an diagonal Gaussian policy."""
+    """
+    torch.distributions implementation of an diagonal Gaussian policy.
+    """
 
     def __init__(self, hidden_dim, act_dim, log_std_bounds=[-5.0, 2.0]):
         super().__init__()
@@ -418,11 +500,5 @@ class DiagGaussianActor(nn.Module):
 
     def forward(self, obs):
         mu, log_std = self.mu(obs), self.log_std(obs)
-        # log_std = torch.tanh(log_std)
-        # # log_std is the output of tanh so it will be between [-1, 1]
-        # # map it to be between [log_std_min, log_std_max]
-        # log_std_min, log_std_max = self.log_std_bounds
-        # log_std = log_std_min + 0.5 * (log_std_max - log_std_min) * (log_std + 1.0)
         std = log_std.exp()
         return Normal(mu, std)
-        #return SquashedNormal(mu, std)

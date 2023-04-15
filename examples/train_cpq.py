@@ -57,7 +57,6 @@ def train(args: CPQTrainConfig):
         sample_action_num=args.sample_action_num,
         gamma=args.gamma,
         tau=args.tau,
-        lmbda=args.lmbda,
         beta=args.beta,
         num_q=args.num_q,
         num_qc=args.num_qc,

@@ -48,7 +48,6 @@ def eval(args: EvalConfig):
         sample_action_num=cfg["sample_action_num"],
         gamma=cfg["gamma"],
         tau=cfg["tau"],
-        lmbda=cfg["lmbda"],
         beta=cfg["beta"],
         num_q=cfg["num_q"],
         num_qc=cfg["num_qc"],

@@ -18,6 +18,34 @@ from osrl.common.net import MLPGaussianPerturbationActor, \
 
 
 class BCQL(nn.Module):
+    """
+        Batch-Constrained deep Q-learning with PID Lagrangian (BCQL)
+
+    Args:
+        state_dim (int): dimension of the state space.
+        action_dim (int): dimension of the action space.
+        max_action (float): Maximum action value.
+        a_hidden_sizes (list): List of integers specifying the sizes 
+            of the layers in the actor network.
+        c_hidden_sizes (list): List of integers specifying the sizes 
+            of the layers in the critic network.
+        vae_hidden_sizes (int): Number of hidden units in the VAE. 
+        sample_action_num (int): Number of action samples to draw. 
+        gamma (float): Discount factor for the reward.
+        tau (float): Soft update coefficient for the target networks. 
+        phi (float): Scale parameter for the Gaussian perturbation 
+            applied to the actor's output.
+        lmbda (float): Weight of the Lagrangian term.
+        beta (float): Weight of the KL divergence term.
+        PID (list): List of three floats containing the coefficients 
+            of the PID controller.
+        num_q (int): Number of Q networks in the ensemble.
+        num_qc (int): Number of cost Q networks in the ensemble.
+        cost_limit (int): Upper limit on the cost per episode.
+        episode_len (int): Maximum length of an episode.
+        device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
+    """
+
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
@@ -37,9 +65,7 @@ class BCQL(nn.Module):
                  cost_limit: int = 10,
                  episode_len: int = 300,
                  device: str = "cpu"):
-        """
-        Batch-Constrained deep Q-learning with PID Lagrangian (BCQL)
-        """
+        
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -86,8 +112,10 @@ class BCQL(nn.Module):
         self.controller = LagrangianPIDController(self.KP, self.KI, self.KD, self.qc_thres)
 
     def _soft_update(self, tgt: nn.Module, src: nn.Module, tau: float) -> None:
-        """Softly update the parameters of target module towards the parameters \
-        of source module."""
+        """
+        Softly update the parameters of target module 
+        towards the parameters of source module.
+        """
         for tgt_param, src_param in zip(tgt.parameters(), src.parameters()):
             tgt_param.data.copy_(tau * src_param.data + (1 - tau) * tgt_param.data)
 
@@ -179,13 +207,18 @@ class BCQL(nn.Module):
         return loss_actor, stats_actor
 
     def setup_optimiers(self, actor_lr, critic_lr, vae_lr):
+        """
+        Sets up optimizers for the actor, critic, cost critic, and VAE models.
+        """
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optim = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
         self.cost_critic_optim = torch.optim.Adam(self.cost_critic.parameters(), lr=critic_lr)
         self.vae_optim = torch.optim.Adam(self.vae.parameters(), lr=vae_lr)
 
     def sync_weight(self):
-        """Soft-update the weight for the target network."""
+        """
+        Soft-update the weight for the target network.
+        """
         self._soft_update(self.critic_old, self.critic, self.tau)
         self._soft_update(self.cost_critic_old, self.cost_critic, self.tau)
         self._soft_update(self.actor_old, self.actor, self.tau)
@@ -203,7 +236,19 @@ class BCQL(nn.Module):
 class BCQLTrainer:
     """
     Constraints Penalized Q-learning Trainer
+    
+    Args:
+        model (BCQL): The BCQL model to be trained.
+        env (gym.Env): The OpenAI Gym environment to train the model in.
+        logger (WandbLogger or DummyLogger): The logger to use for tracking training progress.
+        actor_lr (float): learning rate for actor
+        critic_lr (float): learning rate for critic
+        vae_lr (float): learning rate for vae
+        reward_scale (float): The scaling factor for the reward signal.
+        cost_scale (float): The scaling factor for the constraint cost.
+        device (str): The device to use for training (e.g. "cpu" or "cuda").
     """
+
     def __init__(
             self,
             model: BCQL,
@@ -227,6 +272,10 @@ class BCQLTrainer:
         
     def train_one_step(self, observations, next_observations,
                        actions, rewards, costs, done):
+        """
+        Trains the model by updating the VAE, critic, cost critic, and actor.
+        """
+
         # update VAE
         loss_vae, stats_vae = self.model.vae_loss(observations, actions)
         # update critic
@@ -246,6 +295,9 @@ class BCQLTrainer:
         self.logger.store(**stats_actor)
         
     def evaluate(self, eval_episodes):
+        """
+        Evaluates the performance of the model on a number of episodes.
+        """
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(eval_episodes, desc="Evaluating...", leave=False):
@@ -259,6 +311,9 @@ class BCQLTrainer:
         
     @torch.no_grad()
     def rollout(self):
+        """
+        Evaluates the performance of the model on a single episode.
+        """
         obs, info = self.env.reset()
         episode_ret, episode_cost, episode_len = 0.0, 0.0, 0
         for _ in range(self.model.episode_len):

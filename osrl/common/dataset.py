@@ -15,6 +15,9 @@ from tqdm.auto import trange  # noqa
 
 
 def discounted_cumsum(x: np.ndarray, gamma: float) -> np.ndarray:
+    """
+    Calculate the discounted cumulative sum of x (can be rewards or costs).
+    """
     cumsum = np.zeros_like(x)
     cumsum[-1] = x[-1]
     for t in reversed(range(x.shape[0] - 1)):
@@ -24,11 +27,39 @@ def discounted_cumsum(x: np.ndarray, gamma: float) -> np.ndarray:
 
 def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: str, 
                        frontier_fn=None, frontier_range=None):
+    """
+    Processes a givne dataset for behavior cloning and its variants.
 
+    Args:
+        dataset (dict): A dictionary containing the dataset to be processed.
+        cost_limit (float): The maximum cost allowed for the dataset.
+        gamma (float): The discount factor used to compute the returns.
+        bc_mode (str): The behavior cloning mode to use. Can be one of:
+            - "all": All trajectories are used for behavior cloning.
+            - "multi-task": All trajectories are used for behavior cloning, and the cost is appended as a feature.
+            - "safe": Only trajectories with cost below the cost limit are used for behavior cloning.
+            - "risky": Only trajectories with cost above twice the cost limit are used for behavior cloning.
+            - "frontier": Only trajectories near the Pareto frontier are used for behavior cloning.
+            - "boundary": Only trajectories near the cost limit are used for behavior cloning.
+        frontier_fn (function, optional): A function used to compute the frontier. 
+                                          Required if bc_mode is "frontier".
+        frontier_range (float, optional): The range around the frontier to use for selecting trajectories. 
+                                           Required if bc_mode is "frontier".
+    
+    Returns:
+        dict: A dictionary containing the processed dataset.
+
+    """
+
+    # mask out transitions after terminal states or timeouts
     done_mask = (dataset["terminals"] == 1) | (dataset["timeouts"] == 1)
+    
     n_transitions = dataset["observations"].shape[0]
     idx = np.arange(n_transitions)
+    
+    # get the indices of the transitions after terminal states or timeouts
     done_idx = idx[done_mask]
+    
     selected_transition = np.zeros((n_transitions,), dtype=int)
     dataset["cost_returns"] = np.zeros_like(dataset["costs"])
     
@@ -37,10 +68,12 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
         start = 0 if i == 0 else done_idx[i] + 1
         end = done_idx[i] + 1 if i == 0 else done_idx[i+1] + 1
         
+        # compute the cost and reward returns for the segment
         cost_returns = discounted_cumsum(dataset["costs"][start:end], gamma=gamma)
         reward_returns = discounted_cumsum(dataset["rewards"][start:end], gamma=gamma)
         dataset["cost_returns"][start:end] = cost_returns[0]
 
+        # select the transitions for behavior cloning based on the mode
         if bc_mode == "all" or bc_mode == "multi-task":
             selected_transition[start:end] = 1
         elif bc_mode == "safe":
@@ -71,7 +104,20 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
 
 def process_sequence_dataset(dataset: dict, cost_reverse: bool = False):
     '''
-    Process the d4rl format dataset to the Sequence dataset.
+    Processe a given dataset into a list of trajectories, each containing information about 
+    the observations, actions, rewards, costs, returns, and cost returns for a single episode.
+    
+    Args:
+
+        dataset (dict): A dictionary representing the dataset, 
+                        with keys "observations", "actions", "rewards", "costs", "terminals", and "timeouts", 
+                        each containing numpy arrays of corresponding data.
+        cost_reverse (bool): An optional boolean parameter that indicates whether the cost should be reversed.
+        
+    Returns:
+        traj (list): A list of dictionaries, each representing a trajectory.
+        info (dict): A dictionary containing additional information about the trajectories
+
     '''
     traj, traj_len = [], []
     data_, episode_step = defaultdict(list), 0
@@ -108,6 +154,22 @@ def get_nearest_point(original_data: np.ndarray,
                       sampled_data: np.ndarray,
                       max_rew_decrease: float = 1,
                       beta: float = 1):
+    
+    """
+    Given two arrays of data, finds the indices of the original data that are closest
+    to each sample in the sampled data, and returns a list of those indices.
+    
+    Args:
+        original_data: A 2D numpy array of the original data.
+        sampled_data: A 2D numpy array of the sampled data.
+        max_rew_decrease: A float representing the maximum reward decrease allowed.
+        beta: A float used in calculating the distance between points.
+    
+    Returns:
+        A list of integers representing the indices of the original data that are closest
+        to each sample in the sampled data.
+    """
+
     idxes = []
     original_idx = np.arange(0, original_data.shape[0])
     # for i in trange(sampled_data.shape[0], desc="Calculating nearest point"):
@@ -122,7 +184,6 @@ def get_nearest_point(original_data: np.ndarray,
     counts = dict(Counter(idxes))
 
     new_idxes = []
-    # dist_fun = lambda x: np.exp(max_rew_decrease / (x + beta))
     dist_fun = lambda x: 1 / (x + beta)
     for idx, num in counts.items():
         new_idxes.append(idx)
@@ -147,10 +208,26 @@ def augmentation(trajs: list,
                  augment_percent: float = 0.3,
                  max_reward: float = 1000.0,
                  min_reward: float = 0.0):
-    '''
-    Calculate sample probability according to the inverse distance 
-    between each trajectory(c, r) to the fitted Pareto Frontier
-    '''
+    """
+    Applies data augmentation to a list of trajectories, 
+    returning the augmented trajectories along with their indices 
+    and the Pareto frontier of the original data.
+
+    Args:
+        trajs: A list of dictionaries representing the original trajectories.
+        deg: The degree of the polynomial used to fit the Pareto frontier.
+        max_rew_decrease: The maximum amount by which the reward of an augmented trajectory can decrease compared to the original.
+        beta: The scaling factor used to weigh the distance between cost and reward when finding nearest neighbors.
+        augment_percent: The percentage of original trajectories to use for augmentation.
+        max_reward: The maximum reward value for augmented trajectories.
+        min_reward: The minimum reward value for augmented trajectories.
+
+    Returns:
+        nearest_idx: A list of indices of the original trajectories that are nearest to each augmented trajectory.
+        aug_trajs: A list of dictionaries representing the augmented trajectories.
+        pareto_frontier: A polynomial function representing the Pareto frontier of the original data.
+    """
+
     rew_ret, cost_ret = [], []
     for i, traj in enumerate(trajs):
         r, c = traj["returns"][0], traj["cost_returns"][0]
@@ -199,6 +276,23 @@ def augmentation(trajs: list,
 
 
 def compute_sample_prob(dataset, pareto_frontier, beta):
+    """
+    Computes the probability of sampling each trajectory in a given dataset.
+
+    Args:
+        dataset (list): A list of dictionaries containing the trajectories 
+                        to compute the sample probabilities for.
+        pareto_frontier (callable): A function that takes in a cost value and 
+                                    returns the corresponding maximum reward value 
+                                    on the Pareto frontier.
+        beta (float): A hyperparameter that controls the shape of the probability distribution.
+
+    Returns:
+        np.ndarray: A 1D numpy array of the same length as the dataset, 
+                    containing the probability of sampling each trajectory.
+
+    """
+
     rew_ret, cost_ret = [], []
     for i, traj in enumerate(dataset):
         r, c = traj["returns"][0], traj["cost_returns"][0]
@@ -222,6 +316,18 @@ def compute_sample_prob(dataset, pareto_frontier, beta):
 
 
 def compute_cost_sample_prob(dataset, cost_transform=lambda x: 50 - x):
+    """
+    Computes the sample probabilities for a given dataset based on its costs.
+
+    Args:
+        dataset (list): A list of trajectories, where each trajectory is a dictionary containing
+                        a "cost_returns" key with a list of cost values.
+        cost_transform (function): A function that transforms cost values.
+
+    Returns:
+        np.ndarray: A 1D numpy array of sample probabilities, normalized to sum to 1.
+    """
+
     sample_prob = []
     for i, traj in enumerate(dataset):
         c = cost_transform(traj["cost_returns"][0])
@@ -233,6 +339,9 @@ def compute_cost_sample_prob(dataset, cost_transform=lambda x: 50 - x):
 
 
 def gauss_kernel(size, std=1.0):
+    """
+    Computes a 1D Gaussian kernel with the given size and standard deviation.
+    """
     size = int(size)
     x = np.linspace(-size, size, 2 * size + 1)
     g = np.exp(-(x**2 / std))
@@ -240,6 +349,10 @@ def gauss_kernel(size, std=1.0):
 
 
 def compute_start_index_sample_prob(dataset, prob=0.4):
+    """
+    computes every trajectories start index sampling probability
+    """
+
     sample_prob_list = []
     for i, traj in enumerate(dataset):
         n = np.sum(traj["costs"])
@@ -272,6 +385,20 @@ def pad_along_axis(arr: np.ndarray, pad_to: int, axis: int = 0, fill_value: floa
 
 
 def select_optimal_trajectory(trajs, rmin=0, cost_bins=60, max_num_per_bin=1):
+    """
+    Selects the optimal trajectories from a list of trajectories based on their returns and costs.
+
+    Args:
+        trajs (list): A list of dictionaries, where each dictionary represents a trajectory and contains
+                      the keys "returns" and "cost_returns".
+        rmin (float): The minimum return that a trajectory must have in order to be considered optimal.
+        cost_bins (int): The number of bins to divide the cost range into.
+        max_num_per_bin (int): The maximum number of trajectories to select from each cost bin.
+
+    Returns:
+        list: A list of dictionaries representing the optimal trajectories.
+    """
+
     rew, cost = [], []
     for i, traj in enumerate(trajs):
         r, c = traj["returns"][0], traj["cost_returns"][0]
@@ -312,10 +439,29 @@ def random_augmentation(trajs: list,
                         cgap: float = 5,
                         rstd: float = 1,
                         cstd: float = 0.25):
-    '''
-    Calculate sample probability according to the inverse distance 
-    between each trajectory(c, r) to the fitted Pareto Frontier
-    '''
+    """
+    Augments a list of trajectories with random noise.
+    
+    Args:
+        trajs (list): A list of dictionaries, where each dictionary represents a trajectory
+            and contains "returns" and "cost_returns" keys that hold the returns and cost returns
+            for each time step of the trajectory.
+        augment_percent (float, optional): The percentage of trajectories to augment.
+        aug_rmin (float, optional): The minimum value for the augmented returns.
+        aug_rmax (float, optional): The maximum value for the augmented returns.
+        aug_cmin (float, optional): The minimum value for the augmented cost returns.
+        aug_cmax (float, optional): The maximum value for the augmented cost returns.
+        cgap (float, optional): The minimum distance between the augmented cost returns
+        rstd (float, optional): The standard deviation of the noise to add to the returns.
+        cstd (float, optional): The standard deviation of the noise to add to the cost returns.
+
+    Returns:
+        Tuple[List[int], List[Dict]]: A tuple containing two lists. The first list contains
+            the indices of the original trajectories that were augmented. The second list contains
+            the augmented trajectories, represented as dictionaries with "returns" and "cost_returns"
+            keys.
+    """
+
     rew_ret, cost_ret = [], []
     for i, traj in enumerate(trajs):
         r, c = traj["returns"][0], traj["cost_returns"][0]
@@ -357,6 +503,39 @@ def random_augmentation(trajs: list,
 
 
 class SequenceDataset(IterableDataset):
+    """
+    A dataset of sequential data.
+
+    Args:
+        dataset (dict): Input dataset, containing trajectory IDs and sequences of observations.
+        seq_len (int): Length of sequence to use for training.
+        reward_scale (float): Scaling factor for reward values.
+        cost_scale (float): Scaling factor for cost values.
+        deg (int): Degree of polynomial used for Pareto frontier augmentation.
+        pf_sample (bool): Whether to sample data from the Pareto frontier.
+        max_rew_decrease (float): Maximum reward decrease for Pareto frontier augmentation.
+        beta (float): Parameter used for cost-based augmentation.
+        augment_percent (float): Percentage of data to augment.
+        max_reward (float): Maximum reward value for augmentation.
+        min_reward (float): Minimum reward value for augmentation.
+        cost_reverse (bool): Whether to reverse the cost values.
+        pf_only (bool): Whether to use only Pareto frontier data points.
+        rmin (float): Minimum reward value for random augmentation.
+        cost_bins (int): Number of cost bins for random augmentation.
+        npb (int): Number of data points to select from each cost bin for random augmentation.
+        cost_sample (bool): Whether to sample data based on cost.
+        cost_transform (callable): Function used to transform cost values.
+        prob (float): Probability of sampling from each trajectory start index.
+        start_sampling (bool): Whether to sample from each trajectory start index.
+        random_aug (float): Percentage of data to augment randomly.
+        aug_rmin (float): Minimum reward value for random augmentation.
+        aug_rmax (float): Maximum reward value for random augmentation.
+        aug_cmin (float): Minimum cost value for random augmentation.
+        aug_cmax (float): Maximum cost value for random augmentation.
+        cgap (float): Cost gap for random augmentation.
+        rstd (float): Standard deviation of reward values for random augmentation.
+        cstd (float): Standard deviation of cost values for random augmentation.
+    """
 
     def __init__(
         self,
@@ -422,8 +601,6 @@ class SequenceDataset(IterableDataset):
             f"original data: {len(self.original_data)}, augment data: {len(self.aug_data)}, total: {len(self.dataset)}"
         )
 
-        # self.state_mean = info["obs_mean"]
-        # self.state_std = info["obs_std"]
         if cost_sample:
             self.sample_prob = compute_cost_sample_prob(self.dataset, cost_transform)
         elif pf_sample:
@@ -440,7 +617,6 @@ class SequenceDataset(IterableDataset):
 
     def __prepare_sample(self, traj_idx, start_idx):
         traj = self.dataset[traj_idx]
-        # https://github.com/kzl/decision-transformer/blob/e2d82e68f330c00f763507b3b01d774740bee53f/gym/experiment.py#L128 # noqa
         states = traj["observations"][start_idx:start_idx + self.seq_len]
         actions = traj["actions"][start_idx:start_idx + self.seq_len]
         returns = traj["returns"][start_idx:start_idx + self.seq_len]
@@ -478,7 +654,17 @@ class SequenceDataset(IterableDataset):
             
             
 class TransitionDataset(IterableDataset):
+    """
+    A dataset of transitions (state, action, reward, next state) used for training RL agents.
     
+    Args:
+        dataset (dict): A dictionary of NumPy arrays containing the observations, actions, rewards, etc.
+        reward_scale (float): The scale factor for the rewards.
+        cost_scale (float): The scale factor for the costs.
+        state_init (bool): If True, the dataset will include an "is_init" flag indicating if a transition
+            corresponds to the initial state of an episode.
+
+    """
     def __init__(self,
                  dataset: dict,
                  reward_scale: float = 1.0,
@@ -498,6 +684,10 @@ class TransitionDataset(IterableDataset):
             self.dataset["is_init"][0] = 1.0
 
     def get_dataset_states(self):
+        """
+        Returns the proportion of initial states in the dataset, 
+        as well as the standard deviations of the observation and action spaces.
+        """
         init_state_propotion = self.dataset["is_init"].mean()
         obs_std = self.dataset["observations"].std(0, keepdims=True)
         act_std = self.dataset["actions"].std(0, keepdims=True)

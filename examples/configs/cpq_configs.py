@@ -38,10 +38,9 @@ class CPQTrainConfig:
     sample_action_num: int = 10
     gamma: float = 0.99
     tau: float = 0.005
-    lmbda: float = 0.75
-    beta: float = 1.5
-    num_q: int = 1
-    num_qc: int = 1
+    beta: float = 0.5
+    num_q: int = 2
+    num_qc: int = 2
     qc_scalar: float = 1.5
     # evaluation params
     eval_episodes: int = 10

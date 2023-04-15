@@ -16,6 +16,36 @@ from osrl.common.net import SquashedGaussianMLPActor, EnsembleDoubleQCritic, \
 
 
 class BEARL(nn.Module):
+    """
+    Bootstrapping Error Accumulation Reduction with PID Lagrangian (BEARL)
+    
+    Args:
+        state_dim (int): dimension of the state space.
+        action_dim (int): dimension of the action space.
+        max_action (float): Maximum action value.
+        a_hidden_sizes (list): List of integers specifying the sizes 
+            of the layers in the actor network.
+        c_hidden_sizes (list): List of integers specifying the sizes 
+            of the layers in the critic network.
+        vae_hidden_sizes (int): Number of hidden units in the VAE. 
+            sample_action_num (int): Number of action samples to draw. 
+        gamma (float): Discount factor for the reward.
+        tau (float): Soft update coefficient for the target networks. 
+        beta (float): Weight of the KL divergence term.            
+        lmbda (float): Weight of the Lagrangian term.
+        mmd_sigma (float): Width parameter for the Gaussian kernel used in the MMD loss.
+        target_mmd_thresh (float): Target threshold for the MMD loss.
+        num_samples_mmd_match (int): Number of samples to use in the MMD loss calculation.
+        PID (list): List of three floats containing the coefficients of the PID controller.
+        kernel (str): Kernel function to use in the MMD loss calculation.
+        num_q (int): Number of Q networks in the ensemble.
+        num_qc (int): Number of cost Q networks in the ensemble.
+        cost_limit (int): Upper limit on the cost per episode.
+        episode_len (int): Maximum length of an episode.
+        start_update_policy_step (int): Number of steps to wait before updating the policy.
+        device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
+    """
+    
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
@@ -40,9 +70,7 @@ class BEARL(nn.Module):
                  start_update_policy_step: int = 20_000,
                  device: str = "cpu"
                  ):
-        """
-        
-        """
+
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -95,8 +123,10 @@ class BEARL(nn.Module):
         self.controller = LagrangianPIDController(self.KP, self.KI, self.KD, self.qc_thres)
         
     def _soft_update(self, tgt: nn.Module, src: nn.Module, tau: float) -> None:
-        """Softly update the parameters of target module towards the parameters \
-        of source module."""
+        """
+        Softly update the parameters of target module towards the parameters
+        of source module.
+        """
         for tgt_param, src_param in zip(tgt.parameters(), src.parameters()):
             tgt_param.data.copy_(tau * src_param.data + (1 - tau) * tgt_param.data)
     
@@ -270,7 +300,9 @@ class BEARL(nn.Module):
         self.alpha_optim = torch.optim.Adam([self.log_alpha], lr=alpha_lr)
     
     def sync_weight(self):
-        """Soft-update the weight for the target network."""
+        """
+        Soft-update the weight for the target network.
+        """
         self._soft_update(self.critic_old, self.critic, self.tau)
         self._soft_update(self.cost_critic_old, self.cost_critic, self.tau)
         self._soft_update(self.actor_old, self.actor, self.tau)
@@ -278,9 +310,9 @@ class BEARL(nn.Module):
     def act(self, obs: np.ndarray, 
             deterministic: bool = False, 
             with_logprob: bool = False):
-        '''
+        """
         Given a single obs, return the action, logp.
-        '''
+        """
         obs = torch.tensor(obs[None, ...], dtype=torch.float32).to(self.device)
         a, logp_a = self._actor_forward(obs, deterministic, with_logprob)
         a = a.data.numpy() if self.device == "cpu" else a.data.cpu().numpy()
@@ -289,6 +321,22 @@ class BEARL(nn.Module):
 
     
 class BEARLTrainer:
+    """
+    BEARL Trainer
+    
+    Args:
+        model (BEARL): The BEARL model to be trained.
+        env (gym.Env): The OpenAI Gym environment to train the model in.
+        logger (WandbLogger or DummyLogger): The logger to use for tracking training progress.
+        actor_lr (float): learning rate for actor
+        critic_lr (float): learning rate for critic
+        alpha_lr (float): learning rate for alpha
+        vae_lr (float): learning rate for vae
+        reward_scale (float): The scaling factor for the reward signal.
+        cost_scale (float): The scaling factor for the constraint cost.
+        device (str): The device to use for training (e.g. "cpu" or "cuda").
+    """
+    
     def __init__(self,
                  model: BEARL,
                  env: gym.Env,
@@ -300,9 +348,7 @@ class BEARLTrainer:
                  reward_scale: float = 1.0,
                  cost_scale: float = 1.0,
                  device="cpu"):
-        """
-        
-        """
+
         self.model = model
         self.logger = logger
         self.env = env
@@ -313,6 +359,10 @@ class BEARLTrainer:
         
     def train_one_step(self, observations, next_observations,
                        actions, rewards, costs, done):
+        """
+        Trains the model by updating the VAE, critic, cost critic, and actor.
+        """
+        
         # update VAE
         loss_vae, stats_vae = self.model.vae_loss(observations, actions)
         # update critic
@@ -330,6 +380,9 @@ class BEARLTrainer:
         self.logger.store(**stats_actor)
     
     def evaluate(self, eval_episodes):
+        """
+        Evaluates the performance of the model on a number of episodes.
+        """
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(eval_episodes, desc="Evaluating...", leave=False):
@@ -343,6 +396,9 @@ class BEARLTrainer:
         
     @torch.no_grad()
     def rollout(self):
+        """
+        Evaluates the performance of the model on a single episode.
+        """
         obs, info = self.env.reset()
         episode_ret, episode_cost, episode_len = 0.0, 0.0, 0
         for _ in range(self.model.episode_len):

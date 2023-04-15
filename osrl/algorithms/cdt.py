@@ -18,8 +18,34 @@ from saferl.utils import WandbLogger, DummyLogger
 
 class CDT(nn.Module):
     """
-    Constrained Decision Transformer
+    Constrained Decision Transformer (CDT)
+    
+    Args:
+        state_dim (int): dimension of the state space.
+        action_dim (int): dimension of the action space.
+        max_action (float): Maximum action value.
+        seq_len (int): The length of the sequence to process.
+        episode_len (int): The length of the episode.
+        embedding_dim (int): The dimension of the embeddings.
+        num_layers (int): The number of transformer layers to use.
+        num_heads (int): The number of heads to use in the multi-head attention.
+        attention_dropout (float): The dropout probability for attention layers.
+        residual_dropout (float): The dropout probability for residual layers.
+        embedding_dropout (float): The dropout probability for embedding layers.
+        time_emb (bool): Whether to include time embeddings.
+        use_rew (bool): Whether to include return embeddings.
+        use_cost (bool): Whether to include cost embeddings.
+        cost_transform (bool): Whether to transform the cost values.
+        add_cost_feat (bool): Whether to add cost features.
+        mul_cost_feat (bool): Whether to multiply cost features.
+        cat_cost_feat (bool): Whether to concatenate cost features.
+        action_head_layers (int): The number of layers in the action head.
+        cost_prefix (bool): Whether to include a cost prefix.
+        stochastic (bool): Whether to use stochastic actions.
+        init_temperature (float): The initial temperature value for stochastic actions.
+        target_entropy (float): The target entropy value for stochastic actions.
     """
+
     def __init__(
         self,
         state_dim: int,
@@ -54,7 +80,6 @@ class CDT(nn.Module):
         self.episode_len = episode_len
         self.max_action = max_action
         if cost_transform:
-            # self.cost_transform = lambda x: 20 / (x + 20)  # costs_to_go = 20 * 30 / (costs_to_go.detach() + 20)
             self.cost_transform = lambda x: 50 - x
         else:
             self.cost_transform = None
@@ -242,6 +267,24 @@ class CDT(nn.Module):
 class CDTTrainer:
     """
     Constrained Decision Transformer Trainer
+    
+    Args:
+        model (CDT): A CDT model to train.
+        env (gym.Env): The OpenAI Gym environment to train the model in.
+        logger (WandbLogger or DummyLogger): The logger to use for tracking training progress.
+        learning_rate (float): The learning rate for the optimizer.
+        weight_decay (float): The weight decay for the optimizer.
+        betas (Tuple[float, ...]): The betas for the optimizer.
+        clip_grad (float): The clip gradient value.
+        lr_warmup_steps (int): The number of warmup steps for the learning rate scheduler.
+        reward_scale (float): The scaling factor for the reward signal.
+        cost_scale (float): The scaling factor for the constraint cost.
+        loss_cost_weight (float): The weight for the cost loss.
+        loss_state_weight (float): The weight for the state loss.
+        cost_reverse (bool): Whether to reverse the cost.
+        no_entropy (bool): Whether to use entropy.
+        device (str): The device to use for training (e.g. "cpu" or "cuda").
+
     """
     def __init__(
             self,
@@ -366,6 +409,9 @@ class CDTTrainer:
         )
 
     def evaluate(self, num_rollouts, target_return, target_cost):
+        """
+        Evaluates the performance of the model on a number of episodes.
+        """
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(num_rollouts, desc="Evaluating...", leave=False):
@@ -385,7 +431,9 @@ class CDTTrainer:
         target_return: float,
         target_cost: float,
     ) -> Tuple[float, float]:
-
+        """
+        Evaluates the performance of the model on a single episode.
+        """
         states = torch.zeros(1, model.episode_len + 1, model.state_dim, dtype=torch.float, device=self.device)
         actions = torch.zeros(1, model.episode_len, model.action_dim, dtype=torch.float, device=self.device)
         returns = torch.zeros(1, model.episode_len + 1, dtype=torch.float, device=self.device)
@@ -430,10 +478,6 @@ class CDTTrainer:
             returns[:, step + 1] = torch.as_tensor(returns[:, step] - reward)
             costs[:, step + 1] = torch.as_tensor(costs[:, step] - cost)
 
-            # the costs could not be negative
-            # if not self.cost_reverse:
-            #     costs = F.relu(costs)
-
             obs = obs_next
 
             episode_ret += reward
@@ -455,17 +499,6 @@ class CDTTrainer:
         c = torch.repeat_interleave(c, size, 0)
         t = torch.repeat_interleave(t, size, 0)
         epi_cost = torch.repeat_interleave(epi_cost, size, 0)
-
-        # cost_noise = -self.beta_dist.sample([size, 1]) * 10
-        # cost_noise = torch.randn([size, 1], device=self.device) * 10 - 5
-        # cost_noise = torch.repeat_interleave(cost_noise, c.shape[1], dim=1)
-        # # cost_noise = torch.randn_like(c[:, -1], device=self.device) * 0.0
-        # state_noise = torch.randn_like(s, device=self.device) * 0.0
-        # return_noise = torch.randn_like(r, device=self.device) * 0.0
-
-        # c = c + cost_noise
-        # s = s + state_noise
-        # r = r + return_noise
 
         acts, _, _ = model(s, a, r, c, t, None, epi_cost)
         if self.stochastic:
