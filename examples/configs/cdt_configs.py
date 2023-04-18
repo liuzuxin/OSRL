@@ -10,7 +10,7 @@ class CDTTrainConfig:
     name: Optional[str] = None
     prefix: Optional[str] = "CDT"
     suffix: Optional[str] = ""
-    logdir: Optional[str] = "log"
+    logdir: Optional[str] = "logs"
     verbose: bool = True
     # model params
     embedding_dim: int = 128

@@ -11,7 +11,7 @@ class BCQLTrainConfig:
     name: Optional[str] = None
     prefix: Optional[str] = "BCQL"
     suffix: Optional[str] = ""
-    logdir: Optional[str] = "log"
+    logdir: Optional[str] = "logs"
     verbose: bool = True
     # training params
     task: str = "offline-CarCircle-v0"
