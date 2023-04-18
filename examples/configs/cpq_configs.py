@@ -23,7 +23,7 @@ class CPQTrainConfig:
     cost_scale: float = 1
     actor_lr: float = 0.0001
     critic_lr: float = 0.001
-    alpha_lr: float = 0.001
+    alpha_lr: float = 0.0001
     vae_lr: float = 0.001
     cost_limit: int = 10
     episode_len: int = 300
@@ -31,10 +31,9 @@ class CPQTrainConfig:
     update_steps: int = 100_000
     num_workers: int = 8
     # model params
-    a_hidden_sizes: List[float] = field(default=[300, 300], is_mutable=True)
-    c_hidden_sizes: List[float] = field(default=[400, 400], is_mutable=True)
+    a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
+    c_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
     vae_hidden_sizes: int = 400
-    alpha_max: float = 1.0
     sample_action_num: int = 10
     gamma: float = 0.99
     tau: float = 0.005

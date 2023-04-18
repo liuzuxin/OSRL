@@ -55,7 +55,6 @@ def train(args: CPQTrainConfig):
         a_hidden_sizes=args.a_hidden_sizes,
         c_hidden_sizes=args.c_hidden_sizes,
         vae_hidden_sizes=args.vae_hidden_sizes,
-        alpha_max=args.alpha_max,
         sample_action_num=args.sample_action_num,
         gamma=args.gamma,
         tau=args.tau,

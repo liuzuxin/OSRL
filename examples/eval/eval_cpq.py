@@ -45,7 +45,6 @@ def eval(args: EvalConfig):
         a_hidden_sizes=cfg["a_hidden_sizes"],
         c_hidden_sizes=cfg["c_hidden_sizes"],
         vae_hidden_sizes=cfg["vae_hidden_sizes"],
-        alpha_max=cfg["alpha_max"],
         sample_action_num=cfg["sample_action_num"],
         gamma=cfg["gamma"],
         tau=cfg["tau"],

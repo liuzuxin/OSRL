@@ -43,8 +43,8 @@ class BEARLTrainConfig:
     num_samples_mmd_match: int = 10
     start_update_policy_step: int = 0
     kernel: str = "gaussian" # or "laplacian"
-    num_q: int = 1
-    num_qc: int = 1
+    num_q: int = 2
+    num_qc: int = 2
     PID: List[float] = field(default=[0.1, 0.003, 0.001], is_mutable=True)
     # evaluation params
     eval_episodes: int = 10
