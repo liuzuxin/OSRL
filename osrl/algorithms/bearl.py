@@ -108,9 +108,8 @@ class BEARL(nn.Module):
                                             num_q=self.num_qc).to(self.device)
         self.vae = VAE(self.state_dim, self.action_dim, self.vae_hidden_sizes, 
                   self.latent_dim, self.max_action, self.device).to(self.device)
+        self.log_alpha = torch.tensor(0.0, device=self.device)
 
-        self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
-        
         self.actor_old = deepcopy(self.actor)
         self.actor_old.eval()
         self.critic_old = deepcopy(self.critic)
@@ -204,45 +203,38 @@ class BEARL(nn.Module):
         for p in self.vae.parameters():
             p.requires_grad = False
         
-        def get_actor_loss(observations):
-            _, raw_sampled_actions = self.vae.decode_multiple(observations, num_decode=self.num_samples_mmd_match)
-            
-            batch_size = observations.shape[0]
-            stacked_obs = torch.repeat_interleave(observations, self.num_samples_mmd_match, 0) # [batch_size*num_samples_mmd_match, obs_dim]
-            actor_samples, raw_actor_actions = self.actor(stacked_obs, return_pretanh_value=True)
-            actor_samples = actor_samples.reshape(batch_size, self.num_samples_mmd_match, self.action_dim)
-            raw_actor_actions = raw_actor_actions.view(batch_size, self.num_samples_mmd_match, self.action_dim)
-            
-            if self.kernel == 'laplacian':
-                mmd_loss = self.mmd_loss_laplacian(raw_sampled_actions, raw_actor_actions, sigma=self.mmd_sigma)
-            elif self.kernel == 'gaussian':
-                mmd_loss = self.mmd_loss_gaussian(raw_sampled_actions, raw_actor_actions, sigma=self.mmd_sigma)
+        _, raw_sampled_actions = self.vae.decode_multiple(observations, num_decode=self.num_samples_mmd_match)
+        
+        batch_size = observations.shape[0]
+        stacked_obs = torch.repeat_interleave(observations, self.num_samples_mmd_match, 0) # [batch_size*num_samples_mmd_match, obs_dim]
+        actor_samples, raw_actor_actions = self.actor(stacked_obs, return_pretanh_value=True)
+        actor_samples = actor_samples.reshape(batch_size, self.num_samples_mmd_match, self.action_dim)
+        raw_actor_actions = raw_actor_actions.view(batch_size, self.num_samples_mmd_match, self.action_dim)
+        
+        if self.kernel == 'laplacian':
+            mmd_loss = self.mmd_loss_laplacian(raw_sampled_actions, raw_actor_actions, sigma=self.mmd_sigma)
+        elif self.kernel == 'gaussian':
+            mmd_loss = self.mmd_loss_gaussian(raw_sampled_actions, raw_actor_actions, sigma=self.mmd_sigma)
 
-            q_val1, q_val2, _, _ = self.critic.predict(observations, actor_samples[:, 0, :])
-            qc_val1, qc_val2, _, _ = self.cost_critic.predict(observations, actor_samples[:, 0, :])
-            qc_val = torch.min(qc_val1, qc_val2)
-            with torch.no_grad():
-                multiplier = self.controller.control(qc_val).detach()
-            qc_penalty = ((qc_val - self.qc_thres) * multiplier).mean()
-            q_val = torch.min(q_val1, q_val2)
-            
-            if self.n_train_steps >= self.start_update_policy_step:
-                loss_actor = (-q_val + self.log_alpha.exp() * (mmd_loss - self.target_mmd_thresh)).mean()
-            else:
-                loss_actor = (self.log_alpha.exp() * (mmd_loss - self.target_mmd_thresh)).mean()
-            loss_actor += qc_penalty
-
-            return loss_actor, mmd_loss, qc_penalty, multiplier
+        q_val1, q_val2, _, _ = self.critic.predict(observations, actor_samples[:, 0, :])
+        qc_val1, qc_val2, _, _ = self.cost_critic.predict(observations, actor_samples[:, 0, :])
+        qc_val = torch.min(qc_val1, qc_val2)
+        with torch.no_grad():
+            multiplier = self.controller.control(qc_val).detach()
+        qc_penalty = ((qc_val - self.qc_thres) * multiplier).mean()
+        q_val = torch.min(q_val1, q_val2)
+        
+        if self.n_train_steps >= self.start_update_policy_step:
+            loss_actor = (-q_val + self.log_alpha.exp() * (mmd_loss - self.target_mmd_thresh)).mean()
+        else:
+            loss_actor = (self.log_alpha.exp() * (mmd_loss - self.target_mmd_thresh)).mean()
+        loss_actor += qc_penalty
         
         self.actor_optim.zero_grad()
-        loss_actor, mmd_loss, qc_penalty, multiplier = get_actor_loss(observations)
         loss_actor.backward()
         self.actor_optim.step()
         
-        self.alpha_optim.zero_grad()
-        loss_actor, mmd_loss, qc_penalty, multiplier = get_actor_loss(observations)
-        (-loss_actor).backward()
-        self.alpha_optim.step()
+        self.log_alpha += self.alpha_lr * self.log_alpha.exp() * (mmd_loss - self.target_mmd_thresh).mean().detach()
         self.log_alpha.data.clamp_(min=-5.0, max=10.0)
         self.n_train_steps += 1
         
@@ -297,7 +289,8 @@ class BEARL(nn.Module):
         self.critic_optim = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
         self.cost_critic_optim = torch.optim.Adam(self.cost_critic.parameters(), lr=critic_lr)
         self.vae_optim = torch.optim.Adam(self.vae.parameters(), lr=vae_lr)
-        self.alpha_optim = torch.optim.Adam([self.log_alpha], lr=alpha_lr)
+        # self.alpha_optim = torch.optim.Adam([self.log_alpha], lr=alpha_lr)
+        self.alpha_lr = alpha_lr
     
     def sync_weight(self):
         """

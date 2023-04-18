@@ -29,7 +29,6 @@ class CPQ(nn.Module):
         c_hidden_sizes (list): List of integers specifying the sizes 
                                of the layers in the critic network.
         vae_hidden_sizes (int): Number of hidden units in the VAE. 
-        alpha_max (float): Maximum value for the Lagrangian multiplier.
         sample_action_num (int): Number of action samples to draw. 
         gamma (float): Discount factor for the reward.
         tau (float): Soft update coefficient for the target networks. 
@@ -49,7 +48,6 @@ class CPQ(nn.Module):
                  a_hidden_sizes: list = [128, 128],
                  c_hidden_sizes: list = [128, 128],
                  vae_hidden_sizes: int = 64,
-                 alpha_max: float = 0.2,
                  sample_action_num: int = 10,
                  gamma: float = 0.99,
                  tau: float = 0.005,
@@ -72,9 +70,6 @@ class CPQ(nn.Module):
         self.num_q = num_q
         self.num_qc = num_qc
         self.qc_scalar = qc_scalar
-        
-        self.alpha_max = alpha_max
-        self.alpha = 0.0
         self.sample_action_num = sample_action_num
         
         self.state_dim = state_dim
@@ -91,7 +86,8 @@ class CPQ(nn.Module):
         self.critic = EnsembleQCritic(self.state_dim, self.action_dim, self.c_hidden_sizes, nn.ReLU, num_q=self.num_q).to(self.device)
         self.vae = VAE(self.state_dim, self.action_dim, self.vae_hidden_sizes, self.latent_dim, self.max_action, self.device).to(self.device)
         self.cost_critic = EnsembleQCritic(self.state_dim, self.action_dim, self.c_hidden_sizes, nn.ReLU, num_q=self.num_qc).to(self.device)
-        
+        self.log_alpha = torch.tensor(0.0, device=self.device)
+
         self.actor_old = deepcopy(self.actor)
         self.actor_old.eval()
         self.critic_old = deepcopy(self.critic)
@@ -174,16 +170,18 @@ class CPQ(nn.Module):
             KL_loss = -0.5 * (1 + torch.log(std.pow(2)) - mean.pow(2) - std.pow(2)).mean(2)  # [sample_action_num, batch_size]
             quantile = torch.quantile(KL_loss, 0.75)
             qc_ood = ((KL_loss >= quantile) * qc_sampled).mean(0)
-            # update alpha
-            self.alpha += self.alpha_lr * (self.qc_thres - qc_ood.mean()).detach().item()
-            self.alpha = np.clip(self.alpha, 0, self.alpha_max)
 
-        loss_cost_critic = self.cost_critic.loss(backup, qc_list) - self.alpha*(qc_ood.mean() - self.qc_thres)
+        loss_cost_critic = self.cost_critic.loss(backup, qc_list) - self.log_alpha.exp()*(qc_ood.mean() - self.qc_thres)
         self.cost_critic_optim.zero_grad()
         loss_cost_critic.backward()
         self.cost_critic_optim.step()
+        
+        # update alpha
+        self.log_alpha += self.alpha_lr * self.log_alpha.exp() * (self.qc_thres - qc_ood.mean()).detach()
+        self.log_alpha.data.clamp_(min=-5.0, max=10.0)
+
         stats_cost_critic = {"loss/cost_critic_loss": loss_cost_critic.item(),
-                             "loss/alpha_value": self.alpha}
+                             "loss/alpha_value": self.log_alpha.exp().item()}
         return loss_cost_critic, stats_cost_critic
 
     def actor_loss(self, observations):
