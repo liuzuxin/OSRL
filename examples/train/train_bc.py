@@ -15,19 +15,23 @@ from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from saferl.utils import WandbLogger
 
 from osrl.common import TransitionDataset
-from osrl.algorithms import BEARL, BEARLTrainer
+from osrl.common.dataset import process_bc_dataset
+from osrl.algorithms import BC, BCTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.bearl_configs import BEARLTrainConfig, BEARL_DEFAULT_CONFIG
+from examples.configs.bc_configs import BCTrainConfig, BC_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
-def train(args: BEARLTrainConfig):
+def train(args: BCTrainConfig):
     seed_all(args.seed)
+    if args.device == "cpu":
+        torch.set_num_threads(args.threads)
 
     # setup logger
     cfg = asdict(args)
-    default_cfg = asdict(BEARL_DEFAULT_CONFIG[args.task]())
+    default_cfg = asdict(BC_DEFAULT_CONFIG[args.task]())
     if args.name is None:
+        args.prefix += "-"+args.bc_mode
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
@@ -38,32 +42,28 @@ def train(args: BEARLTrainConfig):
     # the cost scale is down in trainer rollout
     env = gym.make(args.task)
     data = env.get_dataset()
-    env = wrap_env(
-        env=env,
-        reward_scale=args.reward_scale,
-    )
-    env = OfflineEnvWrapper(env)
+    
+    # function w.r.t episode cost
+    frontier_fn = {}
+    frontier_fn["offline-AntRun-v0"] = lambda x: 600 + 10/3*x
+    frontier_fn["offline-CarCircle-v0"] = lambda x: 450 + 5/3*x
+    frontier_fn["offline-CarRun-v0"] = lambda x: 600
+    frontier_fn["offline-DroneRun-v0"] = lambda x: 325 + 125/70*x
+    frontier_fn["offline-DroneCircle-v0"] = lambda x: 600 + 4*x
+    frontier_range = 50
+
+    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode, 
+                       frontier_fn[args.task], frontier_range)
     
     # model & optimizer & scheduler setup
-    model = BEARL(
-        state_dim=env.observation_space.shape[0],
+    state_dim = env.observation_space.shape[0]
+    if args.bc_mode == "multi-task":
+        state_dim += 1
+    model = BC(
+        state_dim=state_dim,
         action_dim=env.action_space.shape[0],
         max_action=env.action_space.high[0],
         a_hidden_sizes=args.a_hidden_sizes,
-        c_hidden_sizes=args.c_hidden_sizes,
-        vae_hidden_sizes=args.vae_hidden_sizes,
-        sample_action_num=args.sample_action_num,
-        gamma=args.gamma,
-        tau=args.tau,
-        beta=args.beta,
-        lmbda=args.lmbda,
-        mmd_sigma=args.mmd_sigma,
-        target_mmd_thresh=args.target_mmd_thresh,
-        start_update_policy_step=args.start_update_policy_step,
-        num_q=args.num_q,
-        num_qc=args.num_qc,
-        PID=args.PID,
-        cost_limit=args.cost_limit,
         episode_len=args.episode_len,
         device=args.device,
     )
@@ -73,23 +73,17 @@ def train(args: BEARLTrainConfig):
         return {"model_state": model.state_dict()}
 
     logger.setup_checkpoint_fn(checkpoint_fn)
+    
+    trainer = BCTrainer(model,
+                        env,
+                        logger=logger,
+                        actor_lr=args.actor_lr,
+                        bc_mode=args.bc_mode,
+                        cost_limit=args.cost_limit,
+                        device=args.device)
 
-    trainer = BEARLTrainer(model,
-                           env,
-                           logger=logger,
-                           actor_lr=args.actor_lr,
-                           critic_lr=args.critic_lr,
-                           vae_lr=args.vae_lr,
-                           reward_scale=args.reward_scale,
-                           cost_scale=args.cost_scale,
-                           device=args.device)
- 
-    dataset = TransitionDataset(
-        data,
-        reward_scale=args.reward_scale,
-        cost_scale=args.cost_scale)
     trainloader = DataLoader(
-        dataset,
+        TransitionDataset(data),
         batch_size=args.batch_size,
         pin_memory=True,
         num_workers=args.num_workers,
@@ -103,10 +97,8 @@ def train(args: BEARLTrainConfig):
 
     for step in trange(args.update_steps, desc="Training"):
         batch = next(trainloader_iter)
-        observations, next_observations, actions, rewards, costs, done = [
-            b.to(args.device) for b in batch
-        ]
-        trainer.train_one_step(observations, next_observations, actions, rewards, costs, done)
+        observations, _, actions, _, _, _ = [b.to(args.device) for b in batch]
+        trainer.train_one_step(observations, actions)
 
         # evaluation
         if (step + 1) % args.eval_every == 0 or step == args.update_steps - 1:
@@ -131,3 +123,5 @@ def train(args: BEARLTrainConfig):
 
 if __name__ == "__main__":
     train()
+
+

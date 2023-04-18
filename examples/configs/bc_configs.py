@@ -18,7 +18,7 @@ class BCTrainConfig:
     dataset: str = None
     seed: int = 0
     device: str = "cuda:0"
-    thread: int = 4
+    threads: int = 4
     actor_lr: float = 0.001
     cost_limit: int = 10
     episode_len: int = 300

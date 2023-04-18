@@ -17,12 +17,14 @@ from saferl.utils import WandbLogger
 from osrl.common import SequenceDataset
 from osrl.algorithms import CDT, CDTTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.cdt_configs import CDTTrainConfig, CDT_DEFAULT_CONFIG
+from examples.configs.cdt_configs import CDTTrainConfig, CDT_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
 def train(args: CDTTrainConfig):
     seed_all(args.seed)
+    if args.device == "cpu":
+        torch.set_num_threads(args.threads)
 
     # setup logger
     cfg = asdict(args)

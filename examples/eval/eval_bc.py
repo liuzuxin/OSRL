@@ -2,6 +2,7 @@ from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
 
 import gym  # noqa
+import dsrl
 import numpy as np
 import pyrallis
 from pyrallis import field

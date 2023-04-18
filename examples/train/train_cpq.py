@@ -17,12 +17,14 @@ from saferl.utils import WandbLogger
 from osrl.common import TransitionDataset
 from osrl.algorithms import CPQ, CPQTrainer
 from saferl.utils.exp_util import auto_name, seed_all
-from configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
+from examples.configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
 def train(args: CPQTrainConfig):
     seed_all(args.seed)
+    if args.device == "cpu":
+        torch.set_num_threads(args.threads)
 
     # setup logger
     cfg = asdict(args)

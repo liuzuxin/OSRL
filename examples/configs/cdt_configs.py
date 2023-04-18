@@ -46,7 +46,7 @@ class CDTTrainConfig:
     # general params
     seed: int = 11
     device: str = "cuda:0"
-    thread: int = 6
+    threads: int = 6
     # augmentation param
     deg: int = 4
     pf_sample: bool = False

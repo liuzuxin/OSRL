@@ -2,12 +2,13 @@ from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
 
 import gym  # noqa
+import dsrl
 import numpy as np
 import pyrallis
 from pyrallis import field
 import torch
 
-from osrl.algorithms import COptiDICE, COptiDICETrainer
+from osrl.algorithms import CPQ, CPQTrainer
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from saferl.utils.exp_util import load_config_and_model, seed_all
 
@@ -37,33 +38,33 @@ def eval(args: EvalConfig):
     env = OfflineEnvWrapper(env)
     env.set_target_cost(cfg["cost_limit"])
 
-    # setup model
-    coptidice_model = COptiDICE(
+    cpq_model = CPQ(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
         max_action=env.action_space.high[0],
-        f_type=cfg["f_type"],
-        init_state_propotion=1.0,
-        observations_std=np.array([0]),
-        actions_std=np.array([0]),
         a_hidden_sizes=cfg["a_hidden_sizes"],
         c_hidden_sizes=cfg["c_hidden_sizes"],
+        vae_hidden_sizes=cfg["vae_hidden_sizes"],
+        alpha_max=cfg["alpha_max"],
+        sample_action_num=cfg["sample_action_num"],
         gamma=cfg["gamma"],
-        alpha=cfg["alpha"],
-        cost_ub_epsilon=cfg["cost_ub_epsilon"],
-        num_nu=cfg["num_nu"],
-        num_chi=cfg["num_chi"],
+        tau=cfg["tau"],
+        beta=cfg["beta"],
+        num_q=cfg["num_q"],
+        num_qc=cfg["num_qc"],
+        qc_scalar=cfg["qc_scalar"],
         cost_limit=cfg["cost_limit"],
         episode_len=cfg["episode_len"],
         device=args.device,
     )
-    coptidice_model.load_state_dict(model["model_state"])
-    coptidice_model.to(args.device)
-    trainer = COptiDICETrainer(coptidice_model,
-                               env,
-                               reward_scale=cfg["reward_scale"],
-                               cost_scale=cfg["cost_scale"],
-                               device=args.device)
+    cpq_model.load_state_dict(model["model_state"])
+    cpq_model.to(args.device)
+
+    trainer = CPQTrainer(cpq_model,
+                         env,
+                         reward_scale=cfg["reward_scale"],
+                         cost_scale=cfg["cost_scale"],
+                         device=args.device)
 
     ret, cost, length = trainer.evaluate(args.eval_episodes)
     normalized_ret, normalized_cost = env.get_normalized_score(ret, cost)

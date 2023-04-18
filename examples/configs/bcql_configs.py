@@ -18,7 +18,7 @@ class BCQLTrainConfig:
     dataset: str = None
     seed: int = 0
     device: str = "cuda:0"
-    thread: int = 4
+    threads: int = 4
     reward_scale: float = 0.1
     cost_scale: float = 1
     actor_lr: float = 0.001
