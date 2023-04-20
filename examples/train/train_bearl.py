@@ -37,16 +37,25 @@ def train(args: BEARLTrainConfig):
     # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
     logger.save_config(cfg, verbose=args.verbose)
 
-    # the cost scale is down in trainer rollout
+    # initialize environment
     env = gym.make(args.task)
+    
+    # pre-process offline dataset
     data = env.get_dataset()
+    env.set_target_cost(args.cost_limit)
+    data = env.pre_process_data(data, 
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges)
+
+    # wrapper
     env = wrap_env(
         env=env,
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
     
-    # model & optimizer & scheduler setup
+    # model & optimizer setup
     model = BEARL(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],
@@ -76,6 +85,7 @@ def train(args: BEARLTrainConfig):
 
     logger.setup_checkpoint_fn(checkpoint_fn)
 
+    # trainer
     trainer = BEARLTrainer(model,
                            env,
                            logger=logger,
@@ -86,6 +96,7 @@ def train(args: BEARLTrainConfig):
                            cost_scale=args.cost_scale,
                            device=args.device)
  
+    # initialize pytorch dataloader
     dataset = TransitionDataset(
         data,
         reward_scale=args.reward_scale,
@@ -103,6 +114,7 @@ def train(args: BEARLTrainConfig):
     best_cost = np.inf
     best_idx = 0
 
+    # training
     for step in trange(args.update_steps, desc="Training"):
         batch = next(trainloader_iter)
         observations, next_observations, actions, rewards, costs, done = [

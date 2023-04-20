@@ -13,6 +13,10 @@ class BEARLTrainConfig:
     suffix: Optional[str] = ""
     logdir: Optional[str] = "logs"
     verbose: bool = True
+    # dataset params
+    outliers_percent: float = None
+    noise_scale: float = None
+    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     # training params
     task: str = "offline-CarCircle-v0"
     dataset: str = None

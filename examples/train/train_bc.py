@@ -42,6 +42,11 @@ def train(args: BCTrainConfig):
     # the cost scale is down in trainer rollout
     env = gym.make(args.task)
     data = env.get_dataset()
+    env.set_target_cost(args.cost_limit)
+    data = env.pre_process_data(data, 
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges)
     
     # function w.r.t episode cost
     frontier_fn = {}

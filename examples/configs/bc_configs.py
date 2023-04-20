@@ -13,6 +13,10 @@ class BCTrainConfig:
     suffix: Optional[str] = ""
     logdir: Optional[str] = "logs"
     verbose: bool = True
+    # dataset params
+    outliers_percent: float = None
+    noise_scale: float = None
+    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     # training params
     task: str = "offline-CarCircle-v0"
     dataset: str = None
@@ -46,8 +50,6 @@ class BCAntRunConfig(BCTrainConfig):
     # training params
     task: str = "offline-AntRun-v0"
     episode_len: int = 200
-    frontier_fn: callable = lambda x: 600 + 10/3*x
-    frontier_range=50.0
 
 
 @dataclass
@@ -57,8 +59,6 @@ class BCDroneRunConfig(BCTrainConfig):
     # training params
     task: str = "offline-DroneRun-v0"
     episode_len: int = 100
-    frontier_fn: callable = lambda x: 325 + 125/70*x
-    frontier_range=50.0
 
 
 @dataclass
@@ -68,8 +68,6 @@ class BCDroneCircleConfig(BCTrainConfig):
     # training params
     task: str = "offline-DroneCircle-v0"
     episode_len: int = 300
-    frontier_fn: callable = lambda x: 600 + 4*x
-    frontier_range=50.0
 
 
 @dataclass
@@ -79,8 +77,6 @@ class BCCarRunConfig(BCTrainConfig):
     # training params
     task: str = "offline-CarRun-v0"
     episode_len: int = 200
-    frontier_fn: callable = lambda x: 600
-    frontier_range=50.0
 
 
 @dataclass

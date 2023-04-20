@@ -12,6 +12,10 @@ class CDTTrainConfig:
     suffix: Optional[str] = ""
     logdir: Optional[str] = "logs"
     verbose: bool = True
+    # dataset params
+    outliers_percent: float = None
+    noise_scale: float = None
+    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     # model params
     embedding_dim: int = 128
     num_layers: int = 3

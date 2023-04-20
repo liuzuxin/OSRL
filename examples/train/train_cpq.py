@@ -38,16 +38,25 @@ def train(args: CPQTrainConfig):
     # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
     logger.save_config(cfg, verbose=args.verbose)
 
-    # the cost scale is down in trainer rollout
+    # initialize environment
     env = gym.make(args.task)
+    
+    # pre-process offline dataset
     data = env.get_dataset()
+    env.set_target_cost(args.cost_limit)
+    data = env.pre_process_data(data, 
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges)
+    
+    # wrapper
     env = wrap_env(
         env=env,
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
 
-    # model & optimizer & scheduler setup
+    # model & optimizer setup
     model = CPQ(
         state_dim=env.observation_space.shape[0],
         action_dim=env.action_space.shape[0],

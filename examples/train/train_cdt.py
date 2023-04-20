@@ -37,16 +37,23 @@ def train(args: CDTTrainConfig):
     # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
     logger.save_config(cfg, verbose=args.verbose)
 
-    # the cost scale is down in trainer rollout
+    # initialize environment
     env = gym.make(args.task)
+    
+    # pre-process offline dataset
     data = env.get_dataset()
+    env.set_target_cost(args.cost_limit)
+    data = env.pre_process_data(data, 
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges)
+    
+    # wrapper
     env = wrap_env(
         env=env,
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
-
-    target_entropy = -env.action_space.shape[0]
 
     # model & optimizer & scheduler setup
     model = CDT(
@@ -72,7 +79,7 @@ def train(args: CDTTrainConfig):
         cost_prefix=args.cost_prefix,
         stochastic=args.stochastic,
         init_temperature=args.init_temperature,
-        target_entropy=target_entropy,
+        target_entropy=-env.action_space.shape[0],
     ).to(args.device)
     print(f"Total parameters: {sum(p.numel() for p in model.parameters())}")
 
@@ -81,6 +88,7 @@ def train(args: CDTTrainConfig):
 
     logger.setup_checkpoint_fn(checkpoint_fn)
 
+    # trainer
     trainer = CDTTrainer(model,
                       env,
                       logger=logger,
