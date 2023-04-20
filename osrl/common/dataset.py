@@ -9,6 +9,7 @@ import numpy as np
 import oapackage
 from collections import Counter
 from scipy.optimize import minimize
+from random import sample
 from torch.nn import functional as F  # noqa
 from torch.utils.data import IterableDataset
 from tqdm.auto import trange  # noqa
@@ -201,6 +202,62 @@ def get_nearest_point(original_data: np.ndarray,
     return new_idxes
 
 
+def grid_filter(x, y, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, 
+                xbins=10, ybins=10, max_num_per_bin=10, min_num_per_bin=1):
+    xmin, xmax = max(min(x), xmin), min(max(x), xmax)
+    ymin, ymax = max(min(y), ymin), min(max(y), ymax)
+    xbin_step = (xmax - xmin) / xbins
+    ybin_step = (ymax - ymin) / ybins
+    # the key is x y bin index, the value is a list of indices
+    bin_hashmap = defaultdict(list)
+    for i in range(len(x)):
+        if x[i] < xmin or x[i] > xmax or y[i] < ymin or y[i] > ymax:
+            continue
+        x_bin_idx = (x[i] - xmin) // xbin_step
+        y_bin_idx = (y[i] - ymin) // ybin_step
+        bin_hashmap[(x_bin_idx, y_bin_idx)].append(i)
+    # start filtering
+    indices = []
+    for v in bin_hashmap.values():
+        if len(v) > max_num_per_bin:
+            # random sample max_num_per_bin indices
+            indices += sample(v, max_num_per_bin)
+        elif len(v) <= min_num_per_bin:
+            continue
+        else:
+            indices += v
+    return indices
+
+
+def filter_trajectory(cost,
+                      rew,
+                      traj,
+                      cost_min=-np.inf,
+                      cost_max=np.inf,
+                      rew_min=-np.inf,
+                      rew_max=np.inf,
+                      cost_bins=60,
+                      rew_bins=50,
+                      max_num_per_bin=10,
+                      min_num_per_bin=1):
+    indices = grid_filter(cost,
+                          rew,
+                          cost_min,
+                          cost_max,
+                          rew_min,
+                          rew_max,
+                          xbins=cost_bins,
+                          ybins=rew_bins,
+                          max_num_per_bin=max_num_per_bin,
+                          min_num_per_bin=min_num_per_bin)
+    cost2, rew2, traj2 = [], [], []
+    for i in indices:
+        cost2.append(cost[i])
+        rew2.append(rew[i])
+        traj2.append(traj[i])
+    return cost2, rew2, traj2, indices
+
+
 def augmentation(trajs: list,
                  deg: int = 3,
                  max_rew_decrease: float = 1,
@@ -233,7 +290,23 @@ def augmentation(trajs: list,
         r, c = traj["returns"][0], traj["cost_returns"][0]
         rew_ret.append(r)
         cost_ret.append(c)
-    rew_ret = np.array(rew_ret, dtype=np.float64)  # type should be float64
+    rew_ret = np.array(rew_ret, dtype=np.float64)
+    cost_ret = np.array(cost_ret, dtype=np.float64)
+    
+    # grid filer to filter outliers
+    cmin, cmax = 0, 70
+    rmin, rmax = 100, 1000
+    cbins, rbins = 10, 50
+    max_npb, min_npb = 10, 2
+    cost_ret, rew_ret, trajs, indices = filter_trajectory(
+                cost_ret, rew_ret, trajs,
+                cost_min=cmin, cost_max=cmax,
+                rew_min=rmin, rew_max=rmax,
+                cost_bins=cbins, rew_bins=rbins,
+                max_num_per_bin=max_npb,
+                min_num_per_bin=min_npb)
+    print(f"after filter {len(trajs)}")
+    rew_ret = np.array(rew_ret, dtype=np.float64)
     cost_ret = np.array(cost_ret, dtype=np.float64)
 
     pareto = oapackage.ParetoDoubleLong()
@@ -272,7 +345,7 @@ def augmentation(trajs: list,
         cost_ret += target_cost_ret - cost_ret[0]
         rew_ret += target_rew_ret - rew_ret[0]
         aug_trajs.append(associated_traj)
-    return nearest_idx, aug_trajs, pareto_frontier
+    return nearest_idx, aug_trajs, pareto_frontier, indices
 
 
 def compute_sample_prob(dataset, pareto_frontier, beta):
@@ -594,7 +667,7 @@ class SequenceDataset(IterableDataset):
             )
         elif augment_percent > 0:
             # sampled data and the index of its "nearest" point in the dataset
-            self.idx, self.aug_data, self.pareto_frontier = augmentation(self.original_data, deg, max_rew_decrease,
+            self.idx, self.aug_data, self.pareto_frontier, self.indices = augmentation(self.original_data, deg, max_rew_decrease,
                                                                          beta, augment_percent, max_reward, min_reward)
         self.dataset = self.original_data + self.aug_data
         print(
