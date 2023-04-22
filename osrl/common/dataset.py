@@ -51,23 +51,18 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
         dict: A dictionary containing the processed dataset.
 
     """
-
-    # mask out transitions after terminal states or timeouts
-    done_mask = (dataset["terminals"] == 1) | (dataset["timeouts"] == 1)
-    
-    n_transitions = dataset["observations"].shape[0]
-    idx = np.arange(n_transitions)
     
     # get the indices of the transitions after terminal states or timeouts
-    done_idx = idx[done_mask]
+    done_idx = np.where((dataset["terminals"] == 1) | (dataset["timeouts"] == 1))[0]
     
+    n_transitions = dataset["observations"].shape[0]
     selected_transition = np.zeros((n_transitions,), dtype=int)
     dataset["cost_returns"] = np.zeros_like(dataset["costs"])
     
-    for i in range(done_idx.shape[0]-1):
+    for i in range(done_idx.shape[0]):
         
-        start = 0 if i == 0 else done_idx[i] + 1
-        end = done_idx[i] + 1 if i == 0 else done_idx[i+1] + 1
+        start = 0 if i == 0 else done_idx[i-1] + 1
+        end = done_idx[i] + 1
         
         # compute the cost and reward returns for the segment
         cost_returns = discounted_cumsum(dataset["costs"][start:end], gamma=gamma)
