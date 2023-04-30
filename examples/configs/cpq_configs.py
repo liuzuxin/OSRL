@@ -6,8 +6,8 @@ from pyrallis import field
 @dataclass
 class CPQTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines"
-    group: str = "CarCircle"
+    project: str = "OSRL-baselines-new"
+    group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "CPQ"
     suffix: Optional[str] = ""
@@ -17,6 +17,7 @@ class CPQTrainConfig:
     outliers_percent: float = None
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    epsilon: float = None
     # training params
     task: str = "offline-CarCircle-v0"
     dataset: str = None
@@ -57,9 +58,6 @@ class CPQCarCircleConfig(CPQTrainConfig):
 
 @dataclass
 class CPQAntRunConfig(CPQTrainConfig):
-    # wandb params
-    group: str = "AntRun"
-    prefix: str = "CPQ"
     # training params
     task: str = "offline-AntRun-v0"
     episode_len: int = 200
@@ -67,19 +65,13 @@ class CPQAntRunConfig(CPQTrainConfig):
 
 @dataclass
 class CPQDroneRunConfig(CPQTrainConfig):
-    # wandb params
-    group: str = "DroneRun"
-    prefix: str = "CPQ"
     # training params
     task: str = "offline-DroneRun-v0"
-    episode_len: int = 100
+    episode_len: int = 200
 
 
 @dataclass
 class CPQDroneCircleConfig(CPQTrainConfig):
-    # wandb params
-    group: str = "DroneCircle"
-    prefix: str = "CPQ"
     # training params
     task: str = "offline-DroneCircle-v0"
     episode_len: int = 300
@@ -87,9 +79,6 @@ class CPQDroneCircleConfig(CPQTrainConfig):
 
 @dataclass
 class CPQCarRunConfig(CPQTrainConfig):
-    # wandb params
-    group: str = "CarRun"
-    prefix: str = "CPQ"
     # training params
     task: str = "offline-CarRun-v0"
     episode_len: int = 200
@@ -97,12 +86,9 @@ class CPQCarRunConfig(CPQTrainConfig):
 
 @dataclass
 class CPQAntCircleConfig(CPQTrainConfig):
-    # wandb params
-    group: str = "AntCircle"
-    prefix: str = "CPQ"
     # training params
     task: str = "offline-AntCircle-v0"
-    episode_len: int = 200
+    episode_len: int = 500
 
 
 CPQ_DEFAULT_CONFIG = {

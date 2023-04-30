@@ -6,8 +6,8 @@ from pyrallis import field
 @dataclass
 class BCQLTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines"
-    group: str = "CarCircle"
+    project: str = "OSRL-baselines-new"
+    group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "BCQL"
     suffix: Optional[str] = ""
@@ -17,6 +17,7 @@ class BCQLTrainConfig:
     outliers_percent: float = None
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    epsilon: float = None
     # training params
     task: str = "offline-CarCircle-v0"
     dataset: str = None
@@ -58,9 +59,6 @@ class BCQLCarCircleConfig(BCQLTrainConfig):
 
 @dataclass
 class BCQLAntRunConfig(BCQLTrainConfig):
-    # wandb params
-    group: str = "AntRun"
-    prefix: str = "BCQL"
     # training params
     task: str = "offline-AntRun-v0"
     episode_len: int = 200
@@ -68,19 +66,13 @@ class BCQLAntRunConfig(BCQLTrainConfig):
 
 @dataclass
 class BCQLDroneRunConfig(BCQLTrainConfig):
-    # wandb params
-    group: str = "DroneRun"
-    prefix: str = "BCQL"
     # training params
     task: str = "offline-DroneRun-v0"
-    episode_len: int = 100
+    episode_len: int = 200
 
 
 @dataclass
 class BCQLDroneCircleConfig(BCQLTrainConfig):
-    # wandb params
-    group: str = "DroneCircle"
-    prefix: str = "BCQL"
     # training params
     task: str = "offline-DroneCircle-v0"
     episode_len: int = 300
@@ -88,9 +80,6 @@ class BCQLDroneCircleConfig(BCQLTrainConfig):
 
 @dataclass
 class BCQLCarRunConfig(BCQLTrainConfig):
-    # wandb params
-    group: str = "CarRun"
-    prefix: str = "BCQL"
     # training params
     task: str = "offline-CarRun-v0"
     episode_len: int = 200
@@ -98,12 +87,9 @@ class BCQLCarRunConfig(BCQLTrainConfig):
 
 @dataclass
 class BCQLAntCircleConfig(BCQLTrainConfig):
-    # wandb params
-    group: str = "AntCircle"
-    prefix: str = "BCQL"
     # training params
     task: str = "offline-AntCircle-v0"
-    episode_len: int = 200
+    episode_len: int = 500
 
 
 BCQL_DEFAULT_CONFIG = {

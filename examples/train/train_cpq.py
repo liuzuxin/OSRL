@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 import os
 import uuid
 
-import gym  # noqa
+import gymnasium as gym  # noqa
 import bullet_safety_gym  # noqa
 import dsrl
 import numpy as np
@@ -11,6 +11,7 @@ import pyrallis
 import torch
 from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
+from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from saferl.utils import WandbLogger
 
@@ -27,11 +28,13 @@ def train(args: CPQTrainConfig):
         torch.set_num_threads(args.threads)
 
     # setup logger
+    args.episode_len = DEFAULT_MAX_EPISODE_STEPS[args.task.split("-")[1]]
     cfg = asdict(args)
     default_cfg = asdict(CPQ_DEFAULT_CONFIG[args.task]())
     if args.name is None:
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
-    print(args.logdir, args.group, args.name)
+    if args.group is None:
+        args.group = args.task + "-cost-" + str(int(args.cost_limit))
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
     logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
@@ -47,7 +50,8 @@ def train(args: CPQTrainConfig):
     data = env.pre_process_data(data, 
                                 args.outliers_percent,
                                 args.noise_scale,
-                                args.inpaint_ranges)
+                                args.inpaint_ranges,
+                                args.epsilon)
     
     # wrapper
     env = wrap_env(

@@ -4,7 +4,7 @@ from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 import os
 import uuid
 
-import gym
+import gymnasium as gym
 import dsrl
 import pyrallis
 import numpy as np

@@ -3,7 +3,7 @@ from collections import defaultdict
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 
-import gym
+import gymnasium as gym
 import numpy as np
 from tqdm.auto import tqdm, trange  # noqa
 
@@ -235,7 +235,7 @@ class BEARL(nn.Module):
         self.actor_optim.step()
         
         self.log_alpha += self.alpha_lr * self.log_alpha.exp() * (mmd_loss - self.target_mmd_thresh).mean().detach()
-        self.log_alpha.data.clamp_(min=-5.0, max=10.0)
+        self.log_alpha.data.clamp_(min=-5.0, max=5.0)
         self.n_train_steps += 1
         
         stats_actor = {"loss/actor_loss": loss_actor.item(),

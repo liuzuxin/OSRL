@@ -2,7 +2,7 @@ from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 
-import gym
+import gymnasium as gym
 import numpy as np
 from tqdm.auto import tqdm, trange  # noqa
 

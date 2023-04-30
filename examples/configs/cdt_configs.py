@@ -5,8 +5,8 @@ from dataclasses import asdict, dataclass
 @dataclass
 class CDTTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines"
-    group: str = "CarCircle"
+    project: str = "OSRL-baselines-new"
+    group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "CDT"
     suffix: Optional[str] = ""
@@ -16,6 +16,7 @@ class CDTTrainConfig:
     outliers_percent: float = None
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    epsilon: float = None
     # model params
     embedding_dim: int = 128
     num_layers: int = 3
@@ -105,9 +106,6 @@ class CDTCarCircleConfig(CDTTrainConfig):
 
 @dataclass
 class CDTAntRunConfig(CDTTrainConfig):
-    # wandb params
-    group: str = "AntRun"
-    prefix: str = "CDT"
     # model params
     seq_len: int = 10
     episode_len: int = 200
@@ -129,12 +127,9 @@ class CDTAntRunConfig(CDTTrainConfig):
 
 @dataclass
 class CDTDroneRunConfig(CDTTrainConfig):
-    # wandb params
-    group: str = "DroneRun"
-    prefix: str = "CDT"
     # model params
     seq_len: int = 10
-    episode_len: int = 100
+    episode_len: int = 200
     # training params
     task: str = "offline-DroneRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
@@ -155,9 +150,6 @@ class CDTDroneRunConfig(CDTTrainConfig):
 
 @dataclass
 class CDTDroneCircleConfig(CDTTrainConfig):
-    # wandb params
-    group: str = "DroneCircle"
-    prefix: str = "CDT"
     # model params
     seq_len: int = 10
     episode_len: int = 300
@@ -176,9 +168,6 @@ class CDTDroneCircleConfig(CDTTrainConfig):
 
 @dataclass
 class CDTCarRunConfig(CDTTrainConfig):
-    # wandb params
-    group: str = "CarRun"
-    prefix: str = "CDT"
     # model params
     seq_len: int = 10
     episode_len: int = 200
@@ -197,12 +186,9 @@ class CDTCarRunConfig(CDTTrainConfig):
 
 @dataclass
 class CDTAntCircleConfig(CDTTrainConfig):
-    # wandb params
-    group: str = "AntCircle"
-    prefix: str = "CDT"
     # model params
     seq_len: int = 10
-    episode_len: int = 200
+    episode_len: int = 500
     # training params
     task: str = "offline-AntCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
@@ -218,9 +204,6 @@ class CDTAntCircleConfig(CDTTrainConfig):
 
 @dataclass
 class CDTCarReachConfig(CDTTrainConfig):
-    # wandb params
-    group: str = "CarReach"
-    prefix: str = "CDT"
     # model params
     seq_len: int = 10
     episode_len: int = 200

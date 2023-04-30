@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 import os
 import uuid
 
-import gym  # noqa
+import gymnasium as gym  # noqa
 import bullet_safety_gym  # noqa
 import dsrl
 import numpy as np
@@ -46,7 +46,8 @@ def train(args: CDTTrainConfig):
     data = env.pre_process_data(data, 
                                 args.outliers_percent,
                                 args.noise_scale,
-                                args.inpaint_ranges)
+                                args.inpaint_ranges,
+                                args.epsilon)
     
     # wrapper
     env = wrap_env(

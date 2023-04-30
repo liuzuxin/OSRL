@@ -4,7 +4,7 @@ from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 import os
 import uuid
 
-import gym
+import gymnasium as gym
 import dsrl
 import pyrallis
 import numpy as np
@@ -178,7 +178,7 @@ class CPQ(nn.Module):
         
         # update alpha
         self.log_alpha += self.alpha_lr * self.log_alpha.exp() * (self.qc_thres - qc_ood.mean()).detach()
-        self.log_alpha.data.clamp_(min=-5.0, max=10.0)
+        self.log_alpha.data.clamp_(min=-5.0, max=5.0)
 
         stats_cost_critic = {"loss/cost_critic_loss": loss_cost_critic.item(),
                              "loss/alpha_value": self.log_alpha.exp().item()}

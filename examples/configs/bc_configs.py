@@ -6,8 +6,8 @@ from pyrallis import field
 @dataclass
 class BCTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines"
-    group: str = "CarCircle"
+    project: str = "OSRL-baselines-new"
+    group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "BC"
     suffix: Optional[str] = ""
@@ -17,6 +17,7 @@ class BCTrainConfig:
     outliers_percent: float = None
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    epsilon: float = None
     # training params
     task: str = "offline-CarCircle-v0"
     dataset: str = None
@@ -45,8 +46,6 @@ class BCCarCircleConfig(BCTrainConfig):
 
 @dataclass
 class BCAntRunConfig(BCTrainConfig):
-    # wandb params
-    group: str = "AntRun"
     # training params
     task: str = "offline-AntRun-v0"
     episode_len: int = 200
@@ -54,17 +53,13 @@ class BCAntRunConfig(BCTrainConfig):
 
 @dataclass
 class BCDroneRunConfig(BCTrainConfig):
-    # wandb params
-    group: str = "DroneRun"
     # training params
     task: str = "offline-DroneRun-v0"
-    episode_len: int = 100
+    episode_len: int = 200
 
 
 @dataclass
 class BCDroneCircleConfig(BCTrainConfig):
-    # wandb params
-    group: str = "DroneCircle"
     # training params
     task: str = "offline-DroneCircle-v0"
     episode_len: int = 300
@@ -72,8 +67,6 @@ class BCDroneCircleConfig(BCTrainConfig):
 
 @dataclass
 class BCCarRunConfig(BCTrainConfig):
-    # wandb params
-    group: str = "CarRun"
     # training params
     task: str = "offline-CarRun-v0"
     episode_len: int = 200
@@ -81,11 +74,9 @@ class BCCarRunConfig(BCTrainConfig):
 
 @dataclass
 class BCAntCircleConfig(BCTrainConfig):
-    # wandb params
-    group: str = "AntCircle"
     # training params
     task: str = "offline-AntCircle-v0"
-    episode_len: int = 200
+    episode_len: int = 500
 
 
 BC_DEFAULT_CONFIG = {

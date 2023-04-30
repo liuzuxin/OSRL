@@ -6,8 +6,8 @@ from pyrallis import field
 @dataclass
 class BEARLTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines"
-    group: str = "CarCircle"
+    project: str = "OSRL-baselines-new"
+    group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "BEARL"
     suffix: Optional[str] = ""
@@ -17,6 +17,7 @@ class BEARLTrainConfig:
     outliers_percent: float = None
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    epsilon: float = None
     # training params
     task: str = "offline-CarCircle-v0"
     dataset: str = None
@@ -62,9 +63,6 @@ class BEARLCarCircleConfig(BEARLTrainConfig):
 
 @dataclass
 class BEARLAntRunConfig(BEARLTrainConfig):
-    # wandb params
-    group: str = "AntRun"
-    prefix: str = "BEARL"
     # training params
     task: str = "offline-AntRun-v0"
     episode_len: int = 200
@@ -72,19 +70,13 @@ class BEARLAntRunConfig(BEARLTrainConfig):
 
 @dataclass
 class BEARLDroneRunConfig(BEARLTrainConfig):
-    # wandb params
-    group: str = "DroneRun"
-    prefix: str = "BEARL"
     # training params
     task: str = "offline-DroneRun-v0"
-    episode_len: int = 100
+    episode_len: int = 200
 
 
 @dataclass
 class BEARLDroneCircleConfig(BEARLTrainConfig):
-    # wandb params
-    group: str = "DroneCircle"
-    prefix: str = "BEARL"
     # training params
     task: str = "offline-DroneCircle-v0"
     episode_len: int = 300
@@ -92,9 +84,6 @@ class BEARLDroneCircleConfig(BEARLTrainConfig):
 
 @dataclass
 class BEARLCarRunConfig(BEARLTrainConfig):
-    # wandb params
-    group: str = "CarRun"
-    prefix: str = "BEARL"
     # training params
     task: str = "offline-CarRun-v0"
     episode_len: int = 200
@@ -102,12 +91,9 @@ class BEARLCarRunConfig(BEARLTrainConfig):
 
 @dataclass
 class BEARLAntCircleConfig(BEARLTrainConfig):
-    # wandb params
-    group: str = "AntCircle"
-    prefix: str = "BEARL"
     # training params
     task: str = "offline-AntCircle-v0"
-    episode_len: int = 200
+    episode_len: int = 500
 
 
 BEARL_DEFAULT_CONFIG = {
