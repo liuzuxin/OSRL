@@ -39,7 +39,7 @@ import dsrl
 seed = 0
 
 # Create the environment
-env = gym.make('offline-CarCircle-v0')
+env = gym.make('OfflineCarCircle-v0')
 
 # dsrl abides by the OpenAI gym interface
 obs, info = env.reset(seed=seed)

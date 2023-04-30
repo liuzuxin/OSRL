@@ -19,7 +19,7 @@ class BCQLTrainConfig:
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
     # training params
-    task: str = "offline-CarCircle-v0"
+    task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
     device: str = "cuda:0"
@@ -60,43 +60,43 @@ class BCQLCarCircleConfig(BCQLTrainConfig):
 @dataclass
 class BCQLAntRunConfig(BCQLTrainConfig):
     # training params
-    task: str = "offline-AntRun-v0"
+    task: str = "OfflineAntRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class BCQLDroneRunConfig(BCQLTrainConfig):
     # training params
-    task: str = "offline-DroneRun-v0"
+    task: str = "OfflineDroneRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class BCQLDroneCircleConfig(BCQLTrainConfig):
     # training params
-    task: str = "offline-DroneCircle-v0"
+    task: str = "OfflineDroneCircle-v0"
     episode_len: int = 300
 
 
 @dataclass
 class BCQLCarRunConfig(BCQLTrainConfig):
     # training params
-    task: str = "offline-CarRun-v0"
+    task: str = "OfflineCarRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class BCQLAntCircleConfig(BCQLTrainConfig):
     # training params
-    task: str = "offline-AntCircle-v0"
+    task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
 
 
 BCQL_DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": BCQLCarCircleConfig,
-    "offline-AntRun-v0": BCQLAntRunConfig,
-    "offline-DroneRun-v0": BCQLDroneRunConfig,
-    "offline-DroneCircle-v0": BCQLDroneCircleConfig,
-    "offline-CarRun-v0": BCQLCarRunConfig,
-    "offline-AntCircle-v0": BCQLAntCircleConfig,
+    "OfflineCarCircle-v0": BCQLCarCircleConfig,
+    "OfflineAntRun-v0": BCQLAntRunConfig,
+    "OfflineDroneRun-v0": BCQLDroneRunConfig,
+    "OfflineDroneCircle-v0": BCQLDroneCircleConfig,
+    "OfflineCarRun-v0": BCQLCarRunConfig,
+    "OfflineAntCircle-v0": BCQLAntCircleConfig,
 }

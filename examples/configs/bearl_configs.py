@@ -19,7 +19,7 @@ class BEARLTrainConfig:
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
     # training params
-    task: str = "offline-CarCircle-v0"
+    task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
     device: str = "cuda:0"
@@ -64,43 +64,43 @@ class BEARLCarCircleConfig(BEARLTrainConfig):
 @dataclass
 class BEARLAntRunConfig(BEARLTrainConfig):
     # training params
-    task: str = "offline-AntRun-v0"
+    task: str = "OfflineAntRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class BEARLDroneRunConfig(BEARLTrainConfig):
     # training params
-    task: str = "offline-DroneRun-v0"
+    task: str = "OfflineDroneRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class BEARLDroneCircleConfig(BEARLTrainConfig):
     # training params
-    task: str = "offline-DroneCircle-v0"
+    task: str = "OfflineDroneCircle-v0"
     episode_len: int = 300
 
 
 @dataclass
 class BEARLCarRunConfig(BEARLTrainConfig):
     # training params
-    task: str = "offline-CarRun-v0"
+    task: str = "OfflineCarRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class BEARLAntCircleConfig(BEARLTrainConfig):
     # training params
-    task: str = "offline-AntCircle-v0"
+    task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
 
 
 BEARL_DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": BEARLCarCircleConfig,
-    "offline-AntRun-v0": BEARLAntRunConfig,
-    "offline-DroneRun-v0": BEARLDroneRunConfig,
-    "offline-DroneCircle-v0": BEARLDroneCircleConfig,
-    "offline-CarRun-v0": BEARLCarRunConfig,
-    "offline-AntCircle-v0": BEARLAntCircleConfig,
+    "OfflineCarCircle-v0": BEARLCarCircleConfig,
+    "OfflineAntRun-v0": BEARLAntRunConfig,
+    "OfflineDroneRun-v0": BEARLDroneRunConfig,
+    "OfflineDroneCircle-v0": BEARLDroneCircleConfig,
+    "OfflineCarRun-v0": BEARLCarRunConfig,
+    "OfflineAntCircle-v0": BEARLAntCircleConfig,
 }
