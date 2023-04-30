@@ -9,7 +9,7 @@ from pyrallis import field
 import torch
 
 from osrl.algorithms import BC, BCTrainer
-from saferl.utils.exp_util import load_config_and_model, seed_all
+from fsrl.utils.exp_util import load_config_and_model, seed_all
 
 
 @dataclass
@@ -61,11 +61,15 @@ def eval(args: EvalConfig):
             trainer.set_target_cost(target_cost)
             ret, cost, length = trainer.evaluate(args.eval_episodes)
             normalized_ret, normalized_cost = env.get_normalized_score(ret, cost)
-            print(f"Eval reward: {ret}, normalized reward: {normalized_ret}; target cost {target_cost}, real cost {cost}, normalized cost: {normalized_cost}")
+            print(
+                f"Eval reward: {ret}, normalized reward: {normalized_ret}; target cost {target_cost}, real cost {cost}, normalized cost: {normalized_cost}"
+            )
     else:
         ret, cost, length = trainer.evaluate(args.eval_episodes)
         normalized_ret, normalized_cost = env.get_normalized_score(ret, cost)
-        print(f"Eval reward: {ret}, normalized reward: {normalized_ret}; cost: {cost}, normalized cost: {normalized_cost}; length: {length}")
+        print(
+            f"Eval reward: {ret}, normalized reward: {normalized_ret}; cost: {cost}, normalized cost: {normalized_cost}; length: {length}"
+        )
 
 
 if __name__ == "__main__":

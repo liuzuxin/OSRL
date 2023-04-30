@@ -10,7 +10,7 @@ from tqdm.auto import tqdm, trange  # noqa
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from saferl.utils import WandbLogger, DummyLogger
+from fsrl.utils import WandbLogger, DummyLogger
 from osrl.common.net import MLPActor
 
 
@@ -43,10 +43,10 @@ class BC(nn.Module):
         self.a_hidden_sizes = a_hidden_sizes
         self.episode_len = episode_len
         self.device = device
-        
-        self.actor = MLPActor(self.state_dim, self.action_dim, self.a_hidden_sizes, 
+
+        self.actor = MLPActor(self.state_dim, self.action_dim, self.a_hidden_sizes,
                               nn.ReLU, self.max_action).to(self.device)
-        
+
     def actor_loss(self, observations, actions):
         pred_actions = self.actor(observations)
         loss_actor = F.mse_loss(pred_actions, actions)
@@ -55,10 +55,10 @@ class BC(nn.Module):
         self.actor_optim.step()
         stats_actor = {"loss/actor_loss": loss_actor.item()}
         return loss_actor, stats_actor
-        
+
     def setup_optimiers(self, actor_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
-        
+
     def act(self, obs):
         '''
         Given a single obs, return the action.
@@ -93,7 +93,7 @@ class BCTrainer:
             bc_mode: str = "all",
             cost_limit: int = 10,
             device="cpu"):
-        
+
         self.model = model
         self.logger = logger
         self.env = env
@@ -101,10 +101,10 @@ class BCTrainer:
         self.bc_mode = bc_mode
         self.cost_limit = cost_limit
         self.model.setup_optimiers(actor_lr)
-        
+
     def set_target_cost(self, target_cost):
         self.cost_limit = target_cost
-        
+
     def train_one_step(self, observations, actions):
         """
         Trains the model by updating the actor.
@@ -112,7 +112,7 @@ class BCTrainer:
         # update actor
         loss_actor, stats_actor = self.model.actor_loss(observations, actions)
         self.logger.store(**stats_actor)
-        
+
     def evaluate(self, eval_episodes):
         """
         Evaluates the performance of the model on a number of episodes.
@@ -126,7 +126,7 @@ class BCTrainer:
             episode_costs.append(epi_cost)
         self.model.train()
         return np.mean(episode_rets), np.mean(episode_costs), np.mean(episode_lens)
-        
+
     @torch.no_grad()
     def rollout(self):
         """

@@ -10,7 +10,7 @@ import torch
 
 from osrl.algorithms import CDT, CDTTrainer
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from saferl.utils.exp_util import load_config_and_model, seed_all
+from fsrl.utils.exp_util import load_config_and_model, seed_all
 
 
 @dataclass
@@ -27,12 +27,12 @@ class EvalConfig:
 
 @pyrallis.wrap()
 def eval(args: EvalConfig):
-    
+
     cfg, model = load_config_and_model(args.path, args.best)
     seed_all(cfg["seed"])
     if args.device == "cpu":
         torch.set_num_threads(args.threads)
-    
+
     env = wrap_env(
         env=gym.make(cfg["task"]),
         reward_scale=cfg["reward_scale"],
@@ -70,7 +70,7 @@ def eval(args: EvalConfig):
     )
     cdt_model.load_state_dict(model["model_state"])
     cdt_model.to(args.device)
-    
+
     trainer = CDTTrainer(cdt_model,
                          env,
                          reward_scale=cfg["reward_scale"],
@@ -80,13 +80,19 @@ def eval(args: EvalConfig):
 
     rets = args.returns
     costs = args.costs
-    assert len(rets) == len(costs), f"The length of returns {len(rets)} should be equal to costs {len(costs)}!"
+    assert len(rets) == len(
+        costs
+    ), f"The length of returns {len(rets)} should be equal to costs {len(costs)}!"
     for target_ret, target_cost in zip(rets, costs):
         seed_all(cfg["seed"])
-        ret, cost, length = trainer.evaluate(args.eval_episodes, target_ret * cfg["reward_scale"],
-                                            target_cost * cfg["cost_scale"])
+        ret, cost, length = trainer.evaluate(args.eval_episodes,
+                                             target_ret * cfg["reward_scale"],
+                                             target_cost * cfg["cost_scale"])
         normalized_ret, normalized_cost = env.get_normalized_score(ret, cost)
-        print(f"Target reward {target_ret}, real reward {ret}, normalized reward: {normalized_ret}; target cost {target_cost}, real cost {cost}, normalized cost: {normalized_cost}")
+        print(
+            f"Target reward {target_ret}, real reward {ret}, normalized reward: {normalized_ret}; target cost {target_cost}, real cost {cost}, normalized cost: {normalized_cost}"
+        )
+
 
 if __name__ == "__main__":
     eval()

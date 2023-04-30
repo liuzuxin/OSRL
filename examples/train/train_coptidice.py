@@ -13,11 +13,11 @@ from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
 from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from saferl.utils import WandbLogger
+from fsrl.utils import WandbLogger
 
 from osrl.common import TransitionDataset
 from osrl.algorithms import COptiDICE, COptiDICETrainer
-from saferl.utils.exp_util import auto_name, seed_all
+from fsrl.utils.exp_util import auto_name, seed_all
 from examples.configs.coptidice_configs import COptiDICETrainConfig, COptiDICE_DEFAULT_CONFIG
 
 
@@ -43,29 +43,25 @@ def train(args: COptiDICETrainConfig):
 
     # initialize environment
     env = gym.make(args.task)
-    
+
     # pre-process offline dataset
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
-    data = env.pre_process_data(data, 
-                                args.outliers_percent,
-                                args.noise_scale,
-                                args.inpaint_ranges,
-                                args.epsilon)
-    
+    data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
+                                args.inpaint_ranges, args.epsilon)
+
     # wrapper
     env = wrap_env(
         env=env,
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
-    
+
     # setup dataset
-    dataset = TransitionDataset(
-        data,
-        reward_scale=args.reward_scale,
-        cost_scale=args.cost_scale,
-        state_init=True)
+    dataset = TransitionDataset(data,
+                                reward_scale=args.reward_scale,
+                                cost_scale=args.cost_scale,
+                                state_init=True)
     trainloader = DataLoader(
         dataset,
         batch_size=args.batch_size,
@@ -74,7 +70,7 @@ def train(args: COptiDICETrainConfig):
     )
     trainloader_iter = iter(trainloader)
     init_s_propotion, obs_std, act_std = dataset.get_dataset_states()
-    
+
     # setup model
     model = COptiDICE(
         state_dim=env.observation_space.shape[0],
@@ -95,7 +91,7 @@ def train(args: COptiDICETrainConfig):
         episode_len=args.episode_len,
         device=args.device,
     )
-    
+
     print(f"Total parameters: {sum(p.numel() for p in model.parameters())}")
 
     def checkpoint_fn():

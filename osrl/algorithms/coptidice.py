@@ -12,7 +12,7 @@ from torch.nn import functional as F  # noqa
 from torch import distributions as pyd
 from torch.distributions.beta import Beta
 
-from saferl.utils import WandbLogger, DummyLogger
+from fsrl.utils import WandbLogger, DummyLogger
 from osrl.common.net import SquashedGaussianMLPActor, EnsembleQCritic
 
 
@@ -24,16 +24,18 @@ def get_f_div_fn(f_type: str):
     f_prime_inv_fn = None
 
     if f_type == 'chi2':
-        f_fn = lambda x:0.5*(x-1)**2 
-        f_prime_inv_fn = lambda x:x+1
-    
+        f_fn = lambda x: 0.5 * (x - 1)**2
+        f_prime_inv_fn = lambda x: x + 1
+
     elif f_type == 'softchi':
-        f_fn = lambda x: torch.where(x<1, x*(torch.log(x+1e-10)-1)+1, 0.5*(x-1)**2)
-        f_prime_inv_fn = lambda x: torch.where(x<0, torch.exp(x.clamp(max=0.0)), x+1)
+        f_fn = lambda x: torch.where(x < 1,
+                                     x * (torch.log(x + 1e-10) - 1) + 1, 0.5 *
+                                     (x - 1)**2)
+        f_prime_inv_fn = lambda x: torch.where(x < 0, torch.exp(x.clamp(max=0.0)), x + 1)
 
     elif f_type == 'kl':
-        f_fn = lambda x: x * torch.log(x+1e-10)
-        f_prime_inv_fn = lambda x: torch.exp(x-1)
+        f_fn = lambda x: x * torch.log(x + 1e-10)
+        f_prime_inv_fn = lambda x: torch.exp(x - 1)
     else:
         raise NotImplementedError('Not implemented f_fn:', f_type)
 
@@ -66,17 +68,17 @@ class COptiDICE(nn.Module):
         episode_len (int): Maximum length of an episode.
         device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
     """
-    
+
     def __init__(self,
                  state_dim: int,
                  action_dim: int,
                  max_action: float,
                  f_type: str,
-                 init_state_propotion: float, 
-                 observations_std: np.ndarray, 
+                 init_state_propotion: float,
+                 observations_std: np.ndarray,
                  actions_std: np.ndarray,
                  a_hidden_sizes: list = [128, 128],
-                 c_hidden_sizes: list = [128, 128], 
+                 c_hidden_sizes: list = [128, 128],
                  gamma: float = 0.99,
                  alpha: float = 0.5,
                  cost_ub_epsilon: float = 0.01,
@@ -84,8 +86,7 @@ class COptiDICE(nn.Module):
                  num_chi: int = 1,
                  cost_limit: int = 10,
                  episode_len: int = 300,
-                 device: str = "cpu"
-                 ):
+                 device: str = "cpu"):
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -100,24 +101,31 @@ class COptiDICE(nn.Module):
         self.cost_limit = cost_limit
         self.episode_len = episode_len
         self.device = device
-        
+
         self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len) / (
-                1 - self.gamma) / self.episode_len
+            1 - self.gamma) / self.episode_len
         self.tau = torch.ones(1, requires_grad=True, device=self.device)
         self.lmbda = torch.ones(1, requires_grad=True, device=self.device)
-        self.actor = SquashedGaussianMLPActor(
-            self.state_dim, self.action_dim, self.a_hidden_sizes, nn.ReLU).to(self.device)
-        self.nu_network = EnsembleQCritic(self.state_dim, 0, self.c_hidden_sizes, 
-                                        nn.ReLU, num_q=self.num_nu).to(self.device)
-        self.chi_network = EnsembleQCritic(self.state_dim, 0, self.c_hidden_sizes, 
-                                        nn.ReLU, num_q=self.num_chi).to(self.device)
-        
+        self.actor = SquashedGaussianMLPActor(self.state_dim, self.action_dim,
+                                              self.a_hidden_sizes,
+                                              nn.ReLU).to(self.device)
+        self.nu_network = EnsembleQCritic(self.state_dim,
+                                          0,
+                                          self.c_hidden_sizes,
+                                          nn.ReLU,
+                                          num_q=self.num_nu).to(self.device)
+        self.chi_network = EnsembleQCritic(self.state_dim,
+                                           0,
+                                           self.c_hidden_sizes,
+                                           nn.ReLU,
+                                           num_q=self.num_chi).to(self.device)
+
         self.f_fn, self.f_prime_inv_fn = get_f_div_fn(f_type)
-        
+
         self.init_state_propotion = init_state_propotion
         self.observations_std = torch.tensor(observations_std, device=self.device)
         self.actions_std = torch.tensor(actions_std, device=self.device)
-        
+
     def _optimal_w(self, observations, next_observations, rewards, costs, done):
         nu_s, _ = self.nu_network.predict(observations, None)
         nu_s_next, _ = self.nu_network.predict(next_observations, None)
@@ -127,19 +135,20 @@ class COptiDICE(nn.Module):
         # w_{lambda,\nu}^*(s,a)
         w_sa = F.relu(self.f_prime_inv_fn(e_nu_lambda / self.alpha))
         return nu_s, nu_s_next, e_nu_lambda, w_sa
-        
+
     def update(self, batch):
         observations, next_observations, actions, rewards, costs, done, is_init = batch
         # 1. Learn the optimal distribution
-        self._lmbda = F.softplus(self.lmbda) # lmbda >= 0
-        
-        nu_s, nu_s_next, e_nu_lambda, w_sa = self._optimal_w(
-            observations, next_observations, rewards, costs, done)
+        self._lmbda = F.softplus(self.lmbda)  # lmbda >= 0
+
+        nu_s, nu_s_next, e_nu_lambda, w_sa = self._optimal_w(observations,
+                                                             next_observations, rewards,
+                                                             costs, done)
         nu_init = nu_s * is_init / self.init_state_propotion
         w_sa_no_grad = w_sa.detach()
         # divergence between distributions of policy & dataset
         Df = self.f_fn(w_sa_no_grad).mean()
-        
+
         # 1.1 (chi, tau) loss
         if self.cost_ub_epsilon == 0:
             weighted_c = (w_sa_no_grad * costs).mean()
@@ -154,23 +163,23 @@ class COptiDICE(nn.Module):
 
             chi_s, _ = self.chi_network.predict(observations, None)
             chi_s_next, _ = self.chi_network.predict(next_observations, None)
-            chi_init =  chi_s * is_init / self.init_state_propotion
-            
+            chi_init = chi_s * is_init / self.init_state_propotion
+
             ell = (1- self.gamma) * chi_init + \
                     w_sa_no_grad * (costs + self.gamma * (1 - done) * chi_s_next - chi_s)
             logits = ell / self._tau.detach()
             weights = torch.softmax(logits, dim=0) * batch_size
             log_weights = torch.log_softmax(logits, dim=0) + np.log(batch_size)
             D_kl = (weights * log_weights - weights + 1).mean()
-            
+
             # an upper bound estimation
             weighted_c = (weights * w_sa_no_grad * costs).mean()
-        
+
             chi_loss = (weights * ell).mean()
             self.chi_optim.zero_grad()
             chi_loss.backward(retain_graph=True)
             self.chi_optim.step()
-            
+
             tau_loss = self._tau * (self.cost_ub_epsilon - D_kl.detach())
             self.tau_optim.zero_grad()
             tau_loss.backward()
@@ -180,18 +189,18 @@ class COptiDICE(nn.Module):
         nu_loss = (1 - self.gamma) * nu_init.mean() + \
             (w_sa * e_nu_lambda - self.alpha * self.f_fn(w_sa)).mean()
         td_error = e_nu_lambda.pow(2).mean()
-        
+
         self.nu_optim.zero_grad()
         nu_loss.backward(retain_graph=True)
         self.nu_optim.step()
-        
+
         # 1.3 lambda loss
         lmbda_loss = self._lmbda * (self.qc_thres - weighted_c.detach())
-        
+
         self.lmbda_optim.zero_grad()
         lmbda_loss.backward()
         self.lmbda_optim.step()
-        
+
         # 2. Extract policy
         obs_eps = torch.randn_like(observations) * self.observations_std * 0.1
         act_eps = torch.randn_like(actions) * self.actions_std * 0.1
@@ -199,35 +208,38 @@ class COptiDICE(nn.Module):
         _, _, dist = self.actor.forward(observations + obs_eps, False, True, True)
 
         with torch.no_grad():
-            _,_, e_nu_lambda, w_sa = self._optimal_w(
-                observations, next_observations, rewards, costs, done)
-        
-        actor_loss = - (w_sa * dist.log_prob(actions + act_eps).sum(axis=-1)).mean()
+            _, _, e_nu_lambda, w_sa = self._optimal_w(observations, next_observations,
+                                                      rewards, costs, done)
+
+        actor_loss = -(w_sa * dist.log_prob(actions + act_eps).sum(axis=-1)).mean()
         self.actor_optim.zero_grad()
         actor_loss.backward()
         self.actor_optim.step()
 
-        stats_loss = {"loss/chi_loss": chi_loss.item(),
-                      "loss/tau_loss": tau_loss.item(),
-                      "loss/D_kl": D_kl.item(),
-                      "loss/Df": Df.item(),
-                      "loss/td_error": td_error.item(),
-                      "loss/nu_loss": nu_loss.item(),
-                      "loss/lmbda_loss": lmbda_loss.item(),
-                      "loss/actor_loss": actor_loss.item(),
-                      "loss/tau": self._tau.item(),
-                      "loss/lmbda": self._lmbda.item()}
+        stats_loss = {
+            "loss/chi_loss": chi_loss.item(),
+            "loss/tau_loss": tau_loss.item(),
+            "loss/D_kl": D_kl.item(),
+            "loss/Df": Df.item(),
+            "loss/td_error": td_error.item(),
+            "loss/nu_loss": nu_loss.item(),
+            "loss/lmbda_loss": lmbda_loss.item(),
+            "loss/actor_loss": actor_loss.item(),
+            "loss/tau": self._tau.item(),
+            "loss/lmbda": self._lmbda.item()
+        }
         return stats_loss
-    
+
     def setup_optimiers(self, actor_lr, critic_lr, scalar_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.nu_optim = torch.optim.Adam(self.nu_network.parameters(), lr=critic_lr)
         self.chi_optim = torch.optim.Adam(self.chi_network.parameters(), lr=critic_lr)
         self.lmbda_optim = torch.optim.Adam([self.lmbda], lr=scalar_lr)
         self.tau_optim = torch.optim.Adam([self.tau], lr=scalar_lr)
-        
-    def act(self, obs: np.ndarray, 
-            deterministic: bool = False, 
+
+    def act(self,
+            obs: np.ndarray,
+            deterministic: bool = False,
             with_logprob: bool = False):
         """
         Given a single obs, return the action, logp.
@@ -235,7 +247,8 @@ class COptiDICE(nn.Module):
         obs = torch.tensor(obs[None, ...], dtype=torch.float32).to(self.device)
         a, logp_a = self.actor.forward(obs, deterministic, with_logprob)
         a = a.data.numpy() if self.device == "cpu" else a.data.cpu().numpy()
-        logp_a = logp_a.data.numpy() if self.device == "cpu" else logp_a.data.cpu().numpy()
+        logp_a = logp_a.data.numpy() if self.device == "cpu" else logp_a.data.cpu(
+        ).numpy()
         return np.squeeze(a, axis=0), np.squeeze(logp_a)
 
 
@@ -254,7 +267,7 @@ class COptiDICETrainer:
         cost_scale (float): The scaling factor for the constraint cost.
         device (str): The device to use for training (e.g. "cpu" or "cuda").
     """
-    
+
     def __init__(self,
                  model: COptiDICE,
                  env: gym.Env,
@@ -272,11 +285,11 @@ class COptiDICETrainer:
         self.cost_scale = cost_scale
         self.device = device
         self.model.setup_optimiers(actor_lr, critic_lr, scalar_lr)
-        
+
     def train_one_step(self, batch):
         stats_loss = self.model.update(batch)
         self.logger.store(**stats_loss)
-    
+
     def evaluate(self, eval_episodes):
         """
         Evaluates the performance of the model on a number of episodes.
@@ -289,9 +302,9 @@ class COptiDICETrainer:
             episode_lens.append(epi_len)
             episode_costs.append(epi_cost)
         self.model.train()
-        return np.mean(episode_rets) / self.reward_scale, np.mean(episode_costs) / self.cost_scale, np.mean(
-            episode_lens)
-        
+        return np.mean(episode_rets) / self.reward_scale, np.mean(
+            episode_costs) / self.cost_scale, np.mean(episode_lens)
+
     @torch.no_grad()
     def rollout(self):
         """

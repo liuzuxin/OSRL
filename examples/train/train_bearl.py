@@ -13,11 +13,11 @@ from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
 from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from saferl.utils import WandbLogger
+from fsrl.utils import WandbLogger
 
 from osrl.common import TransitionDataset
 from osrl.algorithms import BEARL, BEARLTrainer
-from saferl.utils.exp_util import auto_name, seed_all
+from fsrl.utils.exp_util import auto_name, seed_all
 from examples.configs.bearl_configs import BEARLTrainConfig, BEARL_DEFAULT_CONFIG
 
 
@@ -43,15 +43,12 @@ def train(args: BEARLTrainConfig):
 
     # initialize environment
     env = gym.make(args.task)
-    
+
     # pre-process offline dataset
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
-    data = env.pre_process_data(data, 
-                                args.outliers_percent,
-                                args.noise_scale,
-                                args.inpaint_ranges,
-                                args.epsilon)
+    data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
+                                args.inpaint_ranges, args.epsilon)
 
     # wrapper
     env = wrap_env(
@@ -59,7 +56,7 @@ def train(args: BEARLTrainConfig):
         reward_scale=args.reward_scale,
     )
     env = OfflineEnvWrapper(env)
-    
+
     # model & optimizer setup
     model = BEARL(
         state_dim=env.observation_space.shape[0],
@@ -100,12 +97,11 @@ def train(args: BEARLTrainConfig):
                            reward_scale=args.reward_scale,
                            cost_scale=args.cost_scale,
                            device=args.device)
- 
+
     # initialize pytorch dataloader
-    dataset = TransitionDataset(
-        data,
-        reward_scale=args.reward_scale,
-        cost_scale=args.cost_scale)
+    dataset = TransitionDataset(data,
+                                reward_scale=args.reward_scale,
+                                cost_scale=args.cost_scale)
     trainloader = DataLoader(
         dataset,
         batch_size=args.batch_size,
@@ -125,7 +121,8 @@ def train(args: BEARLTrainConfig):
         observations, next_observations, actions, rewards, costs, done = [
             b.to(args.device) for b in batch
         ]
-        trainer.train_one_step(observations, next_observations, actions, rewards, costs, done)
+        trainer.train_one_step(observations, next_observations, actions, rewards, costs,
+                               done)
 
         # evaluation
         if (step + 1) % args.eval_every == 0 or step == args.update_steps - 1:

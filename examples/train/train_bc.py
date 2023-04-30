@@ -13,12 +13,12 @@ from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
 from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from saferl.utils import WandbLogger, DummyLogger
+from fsrl.utils import WandbLogger, DummyLogger
 
 from osrl.common import TransitionDataset
 from osrl.common.dataset import process_bc_dataset
 from osrl.algorithms import BC, BCTrainer
-from saferl.utils.exp_util import auto_name, seed_all
+from fsrl.utils.exp_util import auto_name, seed_all
 from examples.configs.bc_configs import BCTrainConfig, BC_DEFAULT_CONFIG
 
 
@@ -33,7 +33,7 @@ def train(args: BCTrainConfig):
     cfg = asdict(args)
     default_cfg = asdict(BC_DEFAULT_CONFIG[args.task]())
     if args.name is None:
-        args.prefix += "-"+args.bc_mode
+        args.prefix += "-" + args.bc_mode
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
     if args.group is None:
         args.group = args.task + "-cost-" + str(int(args.cost_limit))
@@ -48,25 +48,22 @@ def train(args: BCTrainConfig):
     env = gym.make(args.task)
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
-    data = env.pre_process_data(data, 
-                                args.outliers_percent,
-                                args.noise_scale,
-                                args.inpaint_ranges,
-                                args.epsilon)
-    
+    data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
+                                args.inpaint_ranges, args.epsilon)
+
     # function w.r.t episode cost
     frontier_fn = {}
-    frontier_fn["offline-AntCircle-v0"] = lambda x: 600 + 4*x
-    frontier_fn["offline-AntRun-v0"] = lambda x: 600 + 10/3*x
-    frontier_fn["offline-CarCircle-v0"] = lambda x: 450 + 5/3*x
+    frontier_fn["offline-AntCircle-v0"] = lambda x: 600 + 4 * x
+    frontier_fn["offline-AntRun-v0"] = lambda x: 600 + 10 / 3 * x
+    frontier_fn["offline-CarCircle-v0"] = lambda x: 450 + 5 / 3 * x
     frontier_fn["offline-CarRun-v0"] = lambda x: 600
-    frontier_fn["offline-DroneRun-v0"] = lambda x: 325 + 125/70*x
-    frontier_fn["offline-DroneCircle-v0"] = lambda x: 600 + 4*x
+    frontier_fn["offline-DroneRun-v0"] = lambda x: 325 + 125 / 70 * x
+    frontier_fn["offline-DroneCircle-v0"] = lambda x: 600 + 4 * x
     frontier_range = 50
 
-    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode, 
+    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode,
                        frontier_fn[args.task], frontier_range)
-    
+
     # model & optimizer & scheduler setup
     state_dim = env.observation_space.shape[0]
     if args.bc_mode == "multi-task":
@@ -85,7 +82,7 @@ def train(args: BCTrainConfig):
         return {"model_state": model.state_dict()}
 
     logger.setup_checkpoint_fn(checkpoint_fn)
-    
+
     trainer = BCTrainer(model,
                         env,
                         logger=logger,
@@ -135,5 +132,3 @@ def train(args: BCTrainConfig):
 
 if __name__ == "__main__":
     train()
-
-
