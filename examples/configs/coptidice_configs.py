@@ -19,7 +19,7 @@ class COptiDICETrainConfig:
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
     # training params
-    task: str = "offline-CarCircle-v0"
+    task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
     device: str = "cuda:0"
@@ -56,43 +56,43 @@ class COptiDICECarCircleConfig(COptiDICETrainConfig):
 @dataclass
 class COptiDICEAntRunConfig(COptiDICETrainConfig):
     # training params
-    task: str = "offline-AntRun-v0"
+    task: str = "OfflineAntRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class COptiDICEDroneRunConfig(COptiDICETrainConfig):
     # training params
-    task: str = "offline-DroneRun-v0"
+    task: str = "OfflineDroneRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class COptiDICEDroneCircleConfig(COptiDICETrainConfig):
     # training params
-    task: str = "offline-DroneCircle-v0"
+    task: str = "OfflineDroneCircle-v0"
     episode_len: int = 300
 
 
 @dataclass
 class COptiDICECarRunConfig(COptiDICETrainConfig):
     # training params
-    task: str = "offline-CarRun-v0"
+    task: str = "OfflineCarRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class COptiDICEAntCircleConfig(COptiDICETrainConfig):
     # training params
-    task: str = "offline-AntCircle-v0"
+    task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
 
 
 COptiDICE_DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": COptiDICECarCircleConfig,
-    "offline-AntRun-v0": COptiDICEAntRunConfig,
-    "offline-DroneRun-v0": COptiDICEDroneRunConfig,
-    "offline-DroneCircle-v0": COptiDICEDroneCircleConfig,
-    "offline-CarRun-v0": COptiDICECarRunConfig,
-    "offline-AntCircle-v0": COptiDICEAntCircleConfig,
+    "OfflineCarCircle-v0": COptiDICECarCircleConfig,
+    "OfflineAntRun-v0": COptiDICEAntRunConfig,
+    "OfflineDroneRun-v0": COptiDICEDroneRunConfig,
+    "OfflineDroneCircle-v0": COptiDICEDroneCircleConfig,
+    "OfflineCarRun-v0": COptiDICECarRunConfig,
+    "OfflineAntCircle-v0": COptiDICEAntCircleConfig,
 }

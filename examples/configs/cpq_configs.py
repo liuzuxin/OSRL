@@ -19,7 +19,7 @@ class CPQTrainConfig:
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
     # training params
-    task: str = "offline-CarCircle-v0"
+    task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
     device: str = "cuda:0"
@@ -59,43 +59,43 @@ class CPQCarCircleConfig(CPQTrainConfig):
 @dataclass
 class CPQAntRunConfig(CPQTrainConfig):
     # training params
-    task: str = "offline-AntRun-v0"
+    task: str = "OfflineAntRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class CPQDroneRunConfig(CPQTrainConfig):
     # training params
-    task: str = "offline-DroneRun-v0"
+    task: str = "OfflineDroneRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class CPQDroneCircleConfig(CPQTrainConfig):
     # training params
-    task: str = "offline-DroneCircle-v0"
+    task: str = "OfflineDroneCircle-v0"
     episode_len: int = 300
 
 
 @dataclass
 class CPQCarRunConfig(CPQTrainConfig):
     # training params
-    task: str = "offline-CarRun-v0"
+    task: str = "OfflineCarRun-v0"
     episode_len: int = 200
 
 
 @dataclass
 class CPQAntCircleConfig(CPQTrainConfig):
     # training params
-    task: str = "offline-AntCircle-v0"
+    task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
 
 
 CPQ_DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": CPQCarCircleConfig,
-    "offline-AntRun-v0": CPQAntRunConfig,
-    "offline-DroneRun-v0": CPQDroneRunConfig,
-    "offline-DroneCircle-v0": CPQDroneCircleConfig,
-    "offline-CarRun-v0": CPQCarRunConfig,
-    "offline-AntCircle-v0": CPQAntCircleConfig,
+    "OfflineCarCircle-v0": CPQCarCircleConfig,
+    "OfflineAntRun-v0": CPQAntRunConfig,
+    "OfflineDroneRun-v0": CPQDroneRunConfig,
+    "OfflineDroneCircle-v0": CPQDroneCircleConfig,
+    "OfflineCarRun-v0": CPQCarRunConfig,
+    "OfflineAntCircle-v0": CPQAntCircleConfig,
 }

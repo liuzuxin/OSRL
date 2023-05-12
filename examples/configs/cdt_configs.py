@@ -29,7 +29,7 @@ class CDTTrainConfig:
     embedding_dropout: float = 0.1
     time_emb: bool = True
     # training params
-    task: str = "offline-CarCircle-v0"
+    task: str = "OfflineCarCircle-v0"
     dataset: str = None
     learning_rate: float = 1e-4
     betas: Tuple[float, float] = (0.9, 0.999)
@@ -110,7 +110,7 @@ class CDTAntRunConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-AntRun-v0"
+    task: str = "OfflineAntRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((500, 0), (600.0, 0), 
                                                      (600, 10), (600, 20), 
                                                      (700, 20), (600, 40),
@@ -131,7 +131,7 @@ class CDTDroneRunConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-DroneRun-v0"
+    task: str = "OfflineDroneRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -154,7 +154,7 @@ class CDTDroneCircleConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 300
     # training params
-    task: str = "offline-DroneCircle-v0"
+    task: str = "OfflineDroneCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -172,7 +172,7 @@ class CDTCarRunConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-CarRun-v0"
+    task: str = "OfflineCarRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -190,7 +190,7 @@ class CDTAntCircleConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 500
     # training params
-    task: str = "offline-AntCircle-v0"
+    task: str = "OfflineAntCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -208,7 +208,7 @@ class CDTCarReachConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-CarReach-v0"
+    task: str = "OfflineCarReach-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -221,10 +221,10 @@ class CDTCarReachConfig(CDTTrainConfig):
     
     
 CDT_DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": CDTCarCircleConfig,
-    "offline-AntRun-v0": CDTAntRunConfig,
-    "offline-DroneRun-v0": CDTDroneRunConfig,
-    "offline-DroneCircle-v0": CDTDroneCircleConfig,
-    "offline-CarRun-v0": CDTCarRunConfig,
-    "offline-AntCircle-v0": CDTAntCircleConfig,
+    "OfflineCarCircle-v0": CDTCarCircleConfig,
+    "OfflineAntRun-v0": CDTAntRunConfig,
+    "OfflineDroneRun-v0": CDTDroneRunConfig,
+    "OfflineDroneCircle-v0": CDTDroneCircleConfig,
+    "OfflineCarRun-v0": CDTCarRunConfig,
+    "OfflineAntCircle-v0": CDTAntCircleConfig,
 }

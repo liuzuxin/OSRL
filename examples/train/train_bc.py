@@ -53,12 +53,12 @@ def train(args: BCTrainConfig):
 
     # function w.r.t episode cost
     frontier_fn = {}
-    frontier_fn["offline-AntCircle-v0"] = lambda x: 600 + 4 * x
-    frontier_fn["offline-AntRun-v0"] = lambda x: 600 + 10 / 3 * x
-    frontier_fn["offline-CarCircle-v0"] = lambda x: 450 + 5 / 3 * x
-    frontier_fn["offline-CarRun-v0"] = lambda x: 600
-    frontier_fn["offline-DroneRun-v0"] = lambda x: 325 + 125 / 70 * x
-    frontier_fn["offline-DroneCircle-v0"] = lambda x: 600 + 4 * x
+    frontier_fn["OfflineAntCircle-v0"] = lambda x: 600 + 4 * x
+    frontier_fn["OfflineAntRun-v0"] = lambda x: 600 + 10 / 3 * x
+    frontier_fn["OfflineCarCircle-v0"] = lambda x: 450 + 5 / 3 * x
+    frontier_fn["OfflineCarRun-v0"] = lambda x: 600
+    frontier_fn["OfflineDroneRun-v0"] = lambda x: 325 + 125 / 70 * x
+    frontier_fn["OfflineDroneCircle-v0"] = lambda x: 600 + 4 * x
     frontier_range = 50
 
     process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode,
