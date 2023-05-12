@@ -1,6 +1,28 @@
-# Offline Safe Reinforcement Learning (OSRL) Baselines
+<div align="center">
+  <a href="http://fsrl.readthedocs.io"><img width="300px" height="auto" src="docs/_static/images/osrl-logo.png"></a>
+</div>
 
-OSRL is an open-source implementation for offline safe reinforcement learning algorithms.
+<br/>
+
+<div align="center">
+
+  <a>![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-brightgreen.svg)</a>
+  [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
+  <!-- [![Documentation Status](https://img.shields.io/readthedocs/fsrl?logo=readthedocs)](https://fsrl.readthedocs.io) -->
+  <!-- [![CodeCov](https://codecov.io/github/liuzuxin/fsrl/branch/main/graph/badge.svg?token=BU27LTW9F3)](https://codecov.io/github/liuzuxin/fsrl)
+  [![Tests](https://github.com/liuzuxin/fsrl/actions/workflows/test.yml/badge.svg)](https://github.com/liuzuxin/fsrl/actions/workflows/test.yml) -->
+  <!-- [![CodeCov](https://img.shields.io/codecov/c/github/liuzuxin/fsrl/main?logo=codecov)](https://app.codecov.io/gh/liuzuxin/fsrl) -->
+  <!-- [![tests](https://img.shields.io/github/actions/workflow/status/liuzuxin/fsrl/test.yml?label=tests&logo=github)](https://github.com/liuzuxin/fsrl/tree/HEAD/tests) -->
+  <!-- [![PyPI](https://img.shields.io/pypi/v/fsrl?logo=pypi)](https://pypi.org/project/fsrl) -->
+  <!-- [![GitHub Repo Stars](https://img.shields.io/github/stars/liuzuxin/fsrl?color=brightgreen&logo=github)](https://github.com/liuzuxin/fsrl/stargazers)
+  [![Downloads](https://static.pepy.tech/personalized-badge/fsrl?period=total&left_color=grey&right_color=blue&left_text=downloads)](https://pepy.tech/project/fsrl) -->
+   <!-- [![License](https://img.shields.io/github/license/liuzuxin/fsrl?label=license)](#license) -->
+
+</div>
+
+---
+
+OSRL (Offline Safe Reinforcement Learning) is an open-source implementation for offline safe reinforcement learning algorithms.
 
 ## Structure
 The structure of this repo is as follows:
