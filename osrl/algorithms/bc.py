@@ -56,7 +56,7 @@ class BC(nn.Module):
         stats_actor = {"loss/actor_loss": loss_actor.item()}
         return loss_actor, stats_actor
 
-    def setup_optimiers(self, actor_lr):
+    def setup_optimizers(self, actor_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
 
     def act(self, obs):
@@ -100,7 +100,7 @@ class BCTrainer:
         self.device = device
         self.bc_mode = bc_mode
         self.cost_limit = cost_limit
-        self.model.setup_optimiers(actor_lr)
+        self.model.setup_optimizers(actor_lr)
 
     def set_target_cost(self, target_cost):
         self.cost_limit = target_cost
