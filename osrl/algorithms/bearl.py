@@ -320,7 +320,7 @@ class BEARL(nn.Module):
         overall_loss = (diff_x_x + diff_y_y - 2.0 * diff_x_y + 1e-6).sqrt()
         return overall_loss
 
-    def setup_optimiers(self, actor_lr, critic_lr, vae_lr, alpha_lr):
+    def setup_optimizers(self, actor_lr, critic_lr, vae_lr, alpha_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optim = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
         self.cost_critic_optim = torch.optim.Adam(self.cost_critic.parameters(),
@@ -387,7 +387,7 @@ class BEARLTrainer:
         self.reward_scale = reward_scale
         self.cost_scale = cost_scale
         self.device = device
-        self.model.setup_optimiers(actor_lr, critic_lr, vae_lr, alpha_lr)
+        self.model.setup_optimizers(actor_lr, critic_lr, vae_lr, alpha_lr)
 
     def train_one_step(self, observations, next_observations, actions, rewards, costs,
                        done):

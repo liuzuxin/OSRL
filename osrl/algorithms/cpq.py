@@ -235,7 +235,7 @@ class CPQ(nn.Module):
         self._soft_update(self.cost_critic_old, self.cost_critic, self.tau)
         self._soft_update(self.actor_old, self.actor, self.tau)
 
-    def setup_optimiers(self, actor_lr, critic_lr, alpha_lr, vae_lr):
+    def setup_optimizers(self, actor_lr, critic_lr, alpha_lr, vae_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optim = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
         self.cost_critic_optim = torch.optim.Adam(self.cost_critic.parameters(),
@@ -295,7 +295,7 @@ class CPQTrainer:
         self.reward_scale = reward_scale
         self.cost_scale = cost_scale
         self.device = device
-        self.model.setup_optimiers(actor_lr, critic_lr, alpha_lr, vae_lr)
+        self.model.setup_optimizers(actor_lr, critic_lr, alpha_lr, vae_lr)
 
     def train_one_step(self, observations, next_observations, actions, rewards, costs,
                        done):

@@ -230,7 +230,7 @@ class COptiDICE(nn.Module):
         }
         return stats_loss
 
-    def setup_optimiers(self, actor_lr, critic_lr, scalar_lr):
+    def setup_optimizers(self, actor_lr, critic_lr, scalar_lr):
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.nu_optim = torch.optim.Adam(self.nu_network.parameters(), lr=critic_lr)
         self.chi_optim = torch.optim.Adam(self.chi_network.parameters(), lr=critic_lr)
@@ -284,7 +284,7 @@ class COptiDICETrainer:
         self.reward_scale = reward_scale
         self.cost_scale = cost_scale
         self.device = device
-        self.model.setup_optimiers(actor_lr, critic_lr, scalar_lr)
+        self.model.setup_optimizers(actor_lr, critic_lr, scalar_lr)
 
     def train_one_step(self, batch):
         stats_loss = self.model.update(batch)
