@@ -11,7 +11,7 @@ import pyrallis
 import torch
 from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
-from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS
+from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS, DENSITY_CFG
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from fsrl.utils import WandbLogger
 
@@ -28,7 +28,7 @@ def train(args: CPQTrainConfig):
         torch.set_num_threads(args.threads)
 
     # setup logger
-    args.episode_len = DEFAULT_MAX_EPISODE_STEPS[args.task.split("-")[1]]
+    args.episode_len = DEFAULT_MAX_EPISODE_STEPS[args.task.split("-")[0][len("Offline"):][:-len("Gymnasium")]]
     cfg = asdict(args)
     default_cfg = asdict(CPQ_DEFAULT_CONFIG[args.task]())
     if args.name is None:
@@ -47,8 +47,18 @@ def train(args: CPQTrainConfig):
     # pre-process offline dataset
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
+    # data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
+    #                             args.inpaint_ranges, args.epsilon)
+    cbins, rbins, max_npb, min_npb = None, None, None, None
+    if args.density != 1.0:
+        density_cfg = DENSITY_CFG[args.task+"_density"+str(args.density)]
+        cbins = density_cfg["cbins"]
+        rbins = density_cfg["rbins"]
+        max_npb = density_cfg["max_npb"]
+        min_npb = density_cfg["min_npb"]
     data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
-                                args.inpaint_ranges, args.epsilon)
+                                args.inpaint_ranges, args.epsilon, args.density,
+                                cbins=cbins, rbins=rbins, max_npb=max_npb, min_npb=min_npb)
 
     # wrapper
     env = wrap_env(

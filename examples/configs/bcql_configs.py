@@ -18,6 +18,7 @@ class BCQLTrainConfig:
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
+    density: float = 1.0
     # training params
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
@@ -92,6 +93,118 @@ class BCQLAntCircleConfig(BCQLTrainConfig):
     episode_len: int = 500
 
 
+@dataclass
+class BCQLCarButton1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarButton1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLCarButton2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarButton2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLCarCircle1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarCircle1Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class BCQLCarCircle2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarCircle2Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class BCQLCarGoal1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarGoal1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLCarGoal2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarGoal2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLCarPush1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarPush1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLCarPush2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineCarPush2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLPointButton1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointButton1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLPointButton2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointButton2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLPointCircle1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointCircle1Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class BCQLPointCircle2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointCircle2Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class BCQLPointGoal1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointGoal1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLPointGoal2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointGoal2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLPointPush1Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointPush1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class BCQLPointPush2Config(BCQLTrainConfig):
+    # training params
+    task: str = "OfflinePointPush2Gymnasium-v0"
+    episode_len: int = 1000
+
+
 BCQL_DEFAULT_CONFIG = {
     "OfflineCarCircle-v0": BCQLCarCircleConfig,
     "OfflineAntRun-v0": BCQLAntRunConfig,
@@ -99,4 +212,22 @@ BCQL_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": BCQLDroneCircleConfig,
     "OfflineCarRun-v0": BCQLCarRunConfig,
     "OfflineAntCircle-v0": BCQLAntCircleConfig,
+
+    "OfflineCarButton1Gymnasium-v0": BCQLCarButton1Config,
+    "OfflineCarButton2Gymnasium-v0": BCQLCarButton2Config,
+    "OfflineCarCircle1Gymnasium-v0": BCQLCarCircle1Config,
+    "OfflineCarCircle2Gymnasium-v0": BCQLCarCircle2Config,
+    "OfflineCarGoal1Gymnasium-v0": BCQLCarGoal1Config,
+    "OfflineCarGoal2Gymnasium-v0": BCQLCarGoal2Config,
+    "OfflineCarPush1Gymnasium-v0": BCQLCarPush1Config,
+    "OfflineCarPush2Gymnasium-v0": BCQLCarPush2Config,
+
+    "OfflinePointButton1Gymnasium-v0": BCQLPointButton1Config,
+    "OfflinePointButton2Gymnasium-v0": BCQLPointButton2Config,
+    "OfflinePointCircle1Gymnasium-v0": BCQLPointCircle1Config,
+    "OfflinePointCircle2Gymnasium-v0": BCQLPointCircle2Config,
+    "OfflinePointGoal1Gymnasium-v0": BCQLPointGoal1Config,
+    "OfflinePointGoal2Gymnasium-v0": BCQLPointGoal2Config,
+    "OfflinePointPush1Gymnasium-v0": BCQLPointPush1Config,
+    "OfflinePointPush2Gymnasium-v0": BCQLPointPush2Config,
 }

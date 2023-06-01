@@ -18,6 +18,7 @@ class CPQTrainConfig:
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
+    density: float = 1.0
     # training params
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
@@ -91,6 +92,119 @@ class CPQAntCircleConfig(CPQTrainConfig):
     episode_len: int = 500
 
 
+
+@dataclass
+class CPQCarButton1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarButton1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQCarButton2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarButton2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQCarCircle1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarCircle1Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class CPQCarCircle2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarCircle2Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class CPQCarGoal1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarGoal1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQCarGoal2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarGoal2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQCarPush1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarPush1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQCarPush2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflineCarPush2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQPointButton1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointButton1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQPointButton2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointButton2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQPointCircle1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointCircle1Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class CPQPointCircle2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointCircle2Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class CPQPointGoal1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointGoal1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQPointGoal2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointGoal2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQPointPush1Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointPush1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CPQPointPush2Config(CPQTrainConfig):
+    # training params
+    task: str = "OfflinePointPush2Gymnasium-v0"
+    episode_len: int = 1000
+
+
 CPQ_DEFAULT_CONFIG = {
     "OfflineCarCircle-v0": CPQCarCircleConfig,
     "OfflineAntRun-v0": CPQAntRunConfig,
@@ -98,4 +212,22 @@ CPQ_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": CPQDroneCircleConfig,
     "OfflineCarRun-v0": CPQCarRunConfig,
     "OfflineAntCircle-v0": CPQAntCircleConfig,
+
+    "OfflineCarButton1Gymnasium-v0": CPQCarButton1Config,
+    "OfflineCarButton2Gymnasium-v0": CPQCarButton2Config,
+    "OfflineCarCircle1Gymnasium-v0": CPQCarCircle1Config,
+    "OfflineCarCircle2Gymnasium-v0": CPQCarCircle2Config,
+    "OfflineCarGoal1Gymnasium-v0": CPQCarGoal1Config,
+    "OfflineCarGoal2Gymnasium-v0": CPQCarGoal2Config,
+    "OfflineCarPush1Gymnasium-v0": CPQCarPush1Config,
+    "OfflineCarPush2Gymnasium-v0": CPQCarPush2Config,
+
+    "OfflinePointButton1Gymnasium-v0": CPQPointButton1Config,
+    "OfflinePointButton2Gymnasium-v0": CPQPointButton2Config,
+    "OfflinePointCircle1Gymnasium-v0": CPQPointCircle1Config,
+    "OfflinePointCircle2Gymnasium-v0": CPQPointCircle2Config,
+    "OfflinePointGoal1Gymnasium-v0": CPQPointGoal1Config,
+    "OfflinePointGoal2Gymnasium-v0": CPQPointGoal2Config,
+    "OfflinePointPush1Gymnasium-v0": CPQPointPush1Config,
+    "OfflinePointPush2Gymnasium-v0": CPQPointPush2Config,
 }

@@ -18,6 +18,7 @@ class COptiDICETrainConfig:
     noise_scale: float = None
     inpaint_ranges: Tuple[Tuple[float, float], ...] = None
     epsilon: float = None
+    density: float = 1.0
     # training params
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
@@ -88,6 +89,118 @@ class COptiDICEAntCircleConfig(COptiDICETrainConfig):
     episode_len: int = 500
 
 
+@dataclass
+class COptiDICECarButton1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarButton1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICECarButton2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarButton2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICECarCircle1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarCircle1Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class COptiDICECarCircle2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarCircle2Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class COptiDICECarGoal1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarGoal1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICECarGoal2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarGoal2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICECarPush1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarPush1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICECarPush2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineCarPush2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICEPointButton1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointButton1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICEPointButton2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointButton2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICEPointCircle1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointCircle1Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class COptiDICEPointCircle2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointCircle2Gymnasium-v0"
+    episode_len: int = 500
+
+
+@dataclass
+class COptiDICEPointGoal1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointGoal1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICEPointGoal2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointGoal2Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICEPointPush1Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointPush1Gymnasium-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class COptiDICEPointPush2Config(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflinePointPush2Gymnasium-v0"
+    episode_len: int = 1000
+
+
 COptiDICE_DEFAULT_CONFIG = {
     "OfflineCarCircle-v0": COptiDICECarCircleConfig,
     "OfflineAntRun-v0": COptiDICEAntRunConfig,
@@ -95,4 +208,22 @@ COptiDICE_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": COptiDICEDroneCircleConfig,
     "OfflineCarRun-v0": COptiDICECarRunConfig,
     "OfflineAntCircle-v0": COptiDICEAntCircleConfig,
+
+    "OfflineCarButton1Gymnasium-v0": COptiDICECarButton1Config,
+    "OfflineCarButton2Gymnasium-v0": COptiDICECarButton2Config,
+    "OfflineCarCircle1Gymnasium-v0": COptiDICECarCircle1Config,
+    "OfflineCarCircle2Gymnasium-v0": COptiDICECarCircle2Config,
+    "OfflineCarGoal1Gymnasium-v0": COptiDICECarGoal1Config,
+    "OfflineCarGoal2Gymnasium-v0": COptiDICECarGoal2Config,
+    "OfflineCarPush1Gymnasium-v0": COptiDICECarPush1Config,
+    "OfflineCarPush2Gymnasium-v0": COptiDICECarPush2Config,
+
+    "OfflinePointButton1Gymnasium-v0": COptiDICEPointButton1Config,
+    "OfflinePointButton2Gymnasium-v0": COptiDICEPointButton2Config,
+    "OfflinePointCircle1Gymnasium-v0": COptiDICEPointCircle1Config,
+    "OfflinePointCircle2Gymnasium-v0": COptiDICEPointCircle2Config,
+    "OfflinePointGoal1Gymnasium-v0": COptiDICEPointGoal1Config,
+    "OfflinePointGoal2Gymnasium-v0": COptiDICEPointGoal2Config,
+    "OfflinePointPush1Gymnasium-v0": COptiDICEPointPush1Config,
+    "OfflinePointPush2Gymnasium-v0": COptiDICEPointPush2Config,
 }
