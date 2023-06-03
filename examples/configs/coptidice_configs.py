@@ -23,7 +23,7 @@ class COptiDICETrainConfig:
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
-    device: str = "cuda:0"
+    device: str = "cpu"
     threads: int = 4
     reward_scale: float = 0.1
     cost_scale: float = 1
@@ -33,7 +33,7 @@ class COptiDICETrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 100_000
+    update_steps: int = 300_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -200,15 +200,100 @@ class COptiDICEPointPush2Config(COptiDICETrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+@dataclass
+class COptiDICEAntVelocityConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineAntVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEHalfCheetahVelocityConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEHopperVelocityConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineHopperVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICESwimmerVelocityConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineSwimmerVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEWalker2dVelocityConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineWalker2dVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEEasySparseConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easysparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEEasyMeanConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easymean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEEasyDenseConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easydense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEMediumSparseConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEMediumMeanConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediummean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEMediumDenseConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumdense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEHardSparseConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEHardMeanConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardmean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class COptiDICEHardDenseConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-harddense-v0"
+    episode_len: int = 1000
+
 
 COptiDICE_DEFAULT_CONFIG = {
+    # bullet_safety_gym
     "OfflineCarCircle-v0": COptiDICECarCircleConfig,
     "OfflineAntRun-v0": COptiDICEAntRunConfig,
     "OfflineDroneRun-v0": COptiDICEDroneRunConfig,
     "OfflineDroneCircle-v0": COptiDICEDroneCircleConfig,
     "OfflineCarRun-v0": COptiDICECarRunConfig,
     "OfflineAntCircle-v0": COptiDICEAntCircleConfig,
-
+    # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": COptiDICECarButton1Config,
     "OfflineCarButton2Gymnasium-v0": COptiDICECarButton2Config,
     "OfflineCarCircle1Gymnasium-v0": COptiDICECarCircle1Config,
@@ -217,7 +302,7 @@ COptiDICE_DEFAULT_CONFIG = {
     "OfflineCarGoal2Gymnasium-v0": COptiDICECarGoal2Config,
     "OfflineCarPush1Gymnasium-v0": COptiDICECarPush1Config,
     "OfflineCarPush2Gymnasium-v0": COptiDICECarPush2Config,
-
+    # safety_gymnasium: point
     "OfflinePointButton1Gymnasium-v0": COptiDICEPointButton1Config,
     "OfflinePointButton2Gymnasium-v0": COptiDICEPointButton2Config,
     "OfflinePointCircle1Gymnasium-v0": COptiDICEPointCircle1Config,
@@ -226,4 +311,20 @@ COptiDICE_DEFAULT_CONFIG = {
     "OfflinePointGoal2Gymnasium-v0": COptiDICEPointGoal2Config,
     "OfflinePointPush1Gymnasium-v0": COptiDICEPointPush1Config,
     "OfflinePointPush2Gymnasium-v0": COptiDICEPointPush2Config,
+    # safety_gymnasium: velocity
+    "OfflineAntVelocityGymnasium-v1": COptiDICEAntVelocityConfig,
+    "OfflineHalfCheetahVelocityGymnasium-v1": COptiDICEHalfCheetahVelocityConfig,
+    "OfflineHopperVelocityGymnasium-v1": COptiDICEHopperVelocityConfig,
+    "OfflineSwimmerVelocityGymnasium-v1": COptiDICESwimmerVelocityConfig,
+    "OfflineWalker2dVelocityGymnasium-v1": COptiDICEWalker2dVelocityConfig,
+    # safe_metadrive
+    "OfflineMetadrive-easysparse-v0": COptiDICEEasySparseConfig,
+    "OfflineMetadrive-easymean-v0": COptiDICEEasyMeanConfig,
+    "OfflineMetadrive-easydense-v0": COptiDICEEasyDenseConfig,
+    "OfflineMetadrive-mediumsparse-v0": COptiDICEMediumSparseConfig,
+    "OfflineMetadrive-mediummean-v0": COptiDICEMediumMeanConfig,
+    "OfflineMetadrive-mediumdense-v0": COptiDICEMediumDenseConfig,
+    "OfflineMetadrive-hardsparse-v0": COptiDICEHardSparseConfig,
+    "OfflineMetadrive-hardmean-v0": COptiDICEHardMeanConfig,
+    "OfflineMetadrive-harddense-v0": COptiDICEHardDenseConfig
 }

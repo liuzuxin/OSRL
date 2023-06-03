@@ -30,7 +30,7 @@ class CDTTrainConfig:
     embedding_dropout: float = 0.1
     time_emb: bool = True
     # training params
-    task: str = "offline-CarCircle-v0"
+    task: str = "OfflineCarCircle-v0"
     dataset: str = None
     learning_rate: float = 1e-4
     betas: Tuple[float, float] = (0.9, 0.999)
@@ -51,7 +51,7 @@ class CDTTrainConfig:
     eval_every: int = 2500
     # general params
     seed: int = 0
-    device: str = "cuda:0"
+    device: str = "cuda:2"
     threads: int = 6
     # augmentation param
     deg: int = 4
@@ -110,7 +110,7 @@ class CDTAntRunConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-AntRun-v0"
+    task: str = "OfflineAntRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((700.0, 10),
                                                      (750.0, 30), 
                                                      (800.0, 70))
@@ -127,7 +127,7 @@ class CDTDroneRunConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-DroneRun-v0"
+    task: str = "OfflineDroneRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((400.0, 10), 
                                                      (500.0, 30), 
                                                      (600.0, 70))
@@ -136,7 +136,7 @@ class CDTDroneRunConfig(CDTTrainConfig):
     max_reward: float = 700.0
     max_rew_decrease: float = 100
     min_reward: float = 1
-    device: str = "cuda:0"
+    device: str = "cuda:3"
 
 
 @dataclass
@@ -145,7 +145,7 @@ class CDTDroneCircleConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 300
     # training params
-    task: str = "offline-DroneCircle-v0"
+    task: str = "OfflineDroneCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((700.0, 10), 
                                                      (750.0, 20), 
                                                      (800.0, 50))
@@ -163,7 +163,7 @@ class CDTCarRunConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-CarRun-v0"
+    task: str = "OfflineCarRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -181,7 +181,7 @@ class CDTAntCircleConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 500
     # training params
-    task: str = "offline-AntCircle-v0"
+    task: str = "OfflineAntCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
                                                      (350.0, 50), 
                                                      (400.0, 100))
@@ -190,7 +190,7 @@ class CDTAntCircleConfig(CDTTrainConfig):
     max_reward: float = 500.0
     max_rew_decrease: float = 100
     min_reward: float = 1
-    device: str = "cuda:1"
+    device: str = "cuda:2"
 
 
 @dataclass
@@ -199,7 +199,7 @@ class CDTCarReachConfig(CDTTrainConfig):
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "offline-CarReach-v0"
+    task: str = "OfflineCarReach-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
                                                      (300, 20), (400, 20), 
                                                      (500, 20), (300, 40),
@@ -498,15 +498,176 @@ class CDTPointPush2Config(CDTTrainConfig):
     min_reward: float = 1
     device: str = "cuda:3"
 
+
+@dataclass
+class CDTAntVelocityConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineAntVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CDTHalfCheetahVelocityConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
+    # training params
+    task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((3000.0, 20), 
+                                                     (3000.0, 40), 
+                                                     (3000.0, 80))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 3000.0
+    max_rew_decrease: float = 500
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+@dataclass
+class CDTHopperVelocityConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineHopperVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CDTSwimmerVelocityConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
+    # training params
+    task: str = "OfflineSwimmerVelocityGymnasium-v1"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((160.0, 20), 
+                                                     (160.0, 40), 
+                                                     (160.0, 80))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 250.0
+    max_rew_decrease: float = 50
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+@dataclass
+class CDTWalker2dVelocityConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
+    # training params
+    task: str = "OfflineWalker2dVelocityGymnasium-v1"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((2800.0, 20), 
+                                                     (2800.0, 40), 
+                                                     (2800.0, 80))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 3600.0
+    max_rew_decrease: float = 800
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+
+@dataclass
+class CDTEasySparseConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easysparse-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CDTEasyMeanConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easymean-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CDTEasyDenseConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
+    # training params
+    task: str = "OfflineMetadrive-easydense-v0"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
+    # augmentation param
+    deg: int = 2
+    max_reward: float = 500.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+
+@dataclass
+class CDTMediumSparseConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumsparse-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CDTMediumMeanConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
+    # training params
+    task: str = "OfflineMetadrive-mediummean-v0"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (300.0, 20), 
+                                                     (300.0, 40))
+    # augmentation param
+    deg: int = 0
+    max_reward: float = 300.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+
+@dataclass
+class CDTMediumDenseConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumdense-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CDTHardSparseConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
+    # training params
+    task: str = "OfflineMetadrive-hardsparse-v0"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
+    # augmentation param
+    deg: int = 2
+    max_reward: float = 500.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+
+@dataclass
+class CDTHardMeanConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardmean-v0"
+    episode_len: int = 1000
+
+
+@dataclass
+class CDTHardDenseConfig(CDTTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-harddense-v0"
+    episode_len: int = 1000
+
     
 CDT_DEFAULT_CONFIG = {
-    "offline-CarCircle-v0": CDTCarCircleConfig,
-    "offline-AntRun-v0": CDTAntRunConfig,
-    "offline-DroneRun-v0": CDTDroneRunConfig,
-    "offline-DroneCircle-v0": CDTDroneCircleConfig,
-    "offline-CarRun-v0": CDTCarRunConfig,
-    "offline-AntCircle-v0": CDTAntCircleConfig,
-
+    # bullet_safety_gym
+    "OfflineCarCircle-v0": CDTCarCircleConfig,
+    "OfflineAntRun-v0": CDTAntRunConfig,
+    "OfflineDroneRun-v0": CDTDroneRunConfig,
+    "OfflineDroneCircle-v0": CDTDroneCircleConfig,
+    "OfflineCarRun-v0": CDTCarRunConfig,
+    "OfflineAntCircle-v0": CDTAntCircleConfig,
+    # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": CDTCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": CDTCarButton2Config,
     "OfflineCarCircle1Gymnasium-v0": CDTCarCircle1Config,
@@ -515,7 +676,7 @@ CDT_DEFAULT_CONFIG = {
     "OfflineCarGoal2Gymnasium-v0": CDTCarGoal2Config,
     "OfflineCarPush1Gymnasium-v0": CDTCarPush1Config,
     "OfflineCarPush2Gymnasium-v0": CDTCarPush2Config,
-
+    # safety_gymnasium: point
     "OfflinePointButton1Gymnasium-v0": CDTPointButton1Config,
     "OfflinePointButton2Gymnasium-v0": CDTPointButton2Config,
     "OfflinePointCircle1Gymnasium-v0": CDTPointCircle1Config,
@@ -524,4 +685,20 @@ CDT_DEFAULT_CONFIG = {
     "OfflinePointGoal2Gymnasium-v0": CDTPointGoal2Config,
     "OfflinePointPush1Gymnasium-v0": CDTPointPush1Config,
     "OfflinePointPush2Gymnasium-v0": CDTPointPush2Config,
+    # safety_gymnasium: velocity
+    "OfflineAntVelocityGymnasium-v1": CDTAntVelocityConfig,
+    "OfflineHalfCheetahVelocityGymnasium-v1": CDTHalfCheetahVelocityConfig,
+    "OfflineHopperVelocityGymnasium-v1": CDTHopperVelocityConfig,
+    "OfflineSwimmerVelocityGymnasium-v1": CDTSwimmerVelocityConfig,
+    "OfflineWalker2dVelocityGymnasium-v1": CDTWalker2dVelocityConfig,
+    # safe_metadrive
+    "OfflineMetadrive-easysparse-v0": CDTEasySparseConfig,
+    "OfflineMetadrive-easymean-v0": CDTEasyMeanConfig,
+    "OfflineMetadrive-easydense-v0": CDTEasyDenseConfig,
+    "OfflineMetadrive-mediumsparse-v0": CDTMediumSparseConfig,
+    "OfflineMetadrive-mediummean-v0": CDTMediumMeanConfig,
+    "OfflineMetadrive-mediumdense-v0": CDTMediumDenseConfig,
+    "OfflineMetadrive-hardsparse-v0": CDTHardSparseConfig,
+    "OfflineMetadrive-hardmean-v0": CDTHardMeanConfig,
+    "OfflineMetadrive-harddense-v0": CDTHardDenseConfig
 }

@@ -23,13 +23,13 @@ class BCTrainConfig:
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
-    device: str = "cuda:0"
+    device: str = "cpu"
     threads: int = 4
     actor_lr: float = 0.001
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 100_000
+    update_steps: int = 300_000
     num_workers: int = 8
     bc_mode: str = "all"  # "all", "safe", "risky", "frontier", "boundary", "multi-task"
     # model params
@@ -191,14 +191,99 @@ class BCPointPush2Config(BCTrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+@dataclass
+class BCAntVelocityConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineAntVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCHalfCheetahVelocityConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCHopperVelocityConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineHopperVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCSwimmerVelocityConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineSwimmerVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCWalker2dVelocityConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineWalker2dVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCEasySparseConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easysparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCEasyMeanConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easymean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCEasyDenseConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easydense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCMediumSparseConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCMediumMeanConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediummean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCMediumDenseConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumdense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCHardSparseConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCHardMeanConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardmean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCHardDenseConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-harddense-v0"
+    episode_len: int = 1000
 
 BC_DEFAULT_CONFIG = {
+    # bullet_safety_gym
     "OfflineCarCircle-v0": BCCarCircleConfig,
     "OfflineAntRun-v0": BCAntRunConfig,
     "OfflineDroneRun-v0": BCDroneRunConfig,
     "OfflineDroneCircle-v0": BCDroneCircleConfig,
     "OfflineCarRun-v0": BCCarRunConfig,
     "OfflineAntCircle-v0": BCAntCircleConfig,
+    # safety_gymnasium: car
     "OfflineCarButton1Gymnasium-v0": BCCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BCCarButton2Config,
     "OfflineCarCircle1Gymnasium-v0": BCCarCircle1Config,
@@ -207,7 +292,7 @@ BC_DEFAULT_CONFIG = {
     "OfflineCarGoal2Gymnasium-v0": BCCarGoal2Config,
     "OfflineCarPush1Gymnasium-v0": BCCarPush1Config,
     "OfflineCarPush2Gymnasium-v0": BCCarPush2Config,
-
+    # safety_gymnasium: point
     "OfflinePointButton1Gymnasium-v0": BCPointButton1Config,
     "OfflinePointButton2Gymnasium-v0": BCPointButton2Config,
     "OfflinePointCircle1Gymnasium-v0": BCPointCircle1Config,
@@ -216,4 +301,20 @@ BC_DEFAULT_CONFIG = {
     "OfflinePointGoal2Gymnasium-v0": BCPointGoal2Config,
     "OfflinePointPush1Gymnasium-v0": BCPointPush1Config,
     "OfflinePointPush2Gymnasium-v0": BCPointPush2Config,
+    # safety_gymnasium: velocity
+    "OfflineAntVelocityGymnasium-v1": BCAntVelocityConfig,
+    "OfflineHalfCheetahVelocityGymnasium-v1": BCHalfCheetahVelocityConfig,
+    "OfflineHopperVelocityGymnasium-v1": BCHopperVelocityConfig,
+    "OfflineSwimmerVelocityGymnasium-v1": BCSwimmerVelocityConfig,
+    "OfflineWalker2dVelocityGymnasium-v1": BCWalker2dVelocityConfig,
+    # safe_metadrive
+    "OfflineMetadrive-easysparse-v0": BCEasySparseConfig,
+    "OfflineMetadrive-easymean-v0": BCEasyMeanConfig,
+    "OfflineMetadrive-easydense-v0": BCEasyDenseConfig,
+    "OfflineMetadrive-mediumsparse-v0": BCMediumSparseConfig,
+    "OfflineMetadrive-mediummean-v0": BCMediumMeanConfig,
+    "OfflineMetadrive-mediumdense-v0": BCMediumDenseConfig,
+    "OfflineMetadrive-hardsparse-v0": BCHardSparseConfig,
+    "OfflineMetadrive-hardmean-v0": BCHardMeanConfig,
+    "OfflineMetadrive-harddense-v0": BCHardDenseConfig
 }

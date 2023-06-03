@@ -23,7 +23,7 @@ class BEARLTrainConfig:
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
-    device: str = "cuda:0"
+    device: str = "cpu"
     threads: int = 4
     reward_scale: float = 0.1
     cost_scale: float = 1
@@ -33,7 +33,7 @@ class BEARLTrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 100_000
+    update_steps: int = 300_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -208,15 +208,100 @@ class BEARLPointPush2Config(BEARLTrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+@dataclass
+class BEARLAntVelocityConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineAntVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLHalfCheetahVelocityConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLHopperVelocityConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineHopperVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLSwimmerVelocityConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineSwimmerVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLWalker2dVelocityConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineWalker2dVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLEasySparseConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easysparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLEasyMeanConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easymean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLEasyDenseConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easydense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLMediumSparseConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLMediumMeanConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediummean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLMediumDenseConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumdense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLHardSparseConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLHardMeanConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardmean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BEARLHardDenseConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-harddense-v0"
+    episode_len: int = 1000
+
 
 BEARL_DEFAULT_CONFIG = {
+    # bullet_safety_gym
     "OfflineCarCircle-v0": BEARLCarCircleConfig,
     "OfflineAntRun-v0": BEARLAntRunConfig,
     "OfflineDroneRun-v0": BEARLDroneRunConfig,
     "OfflineDroneCircle-v0": BEARLDroneCircleConfig,
     "OfflineCarRun-v0": BEARLCarRunConfig,
     "OfflineAntCircle-v0": BEARLAntCircleConfig,
-
+    # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": BEARLCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BEARLCarButton2Config,
     "OfflineCarCircle1Gymnasium-v0": BEARLCarCircle1Config,
@@ -225,7 +310,7 @@ BEARL_DEFAULT_CONFIG = {
     "OfflineCarGoal2Gymnasium-v0": BEARLCarGoal2Config,
     "OfflineCarPush1Gymnasium-v0": BEARLCarPush1Config,
     "OfflineCarPush2Gymnasium-v0": BEARLCarPush2Config,
-
+    # safety_gymnasium: point
     "OfflinePointButton1Gymnasium-v0": BEARLPointButton1Config,
     "OfflinePointButton2Gymnasium-v0": BEARLPointButton2Config,
     "OfflinePointCircle1Gymnasium-v0": BEARLPointCircle1Config,
@@ -234,4 +319,20 @@ BEARL_DEFAULT_CONFIG = {
     "OfflinePointGoal2Gymnasium-v0": BEARLPointGoal2Config,
     "OfflinePointPush1Gymnasium-v0": BEARLPointPush1Config,
     "OfflinePointPush2Gymnasium-v0": BEARLPointPush2Config,
+    # safety_gymnasium: velocity
+    "OfflineAntVelocityGymnasium-v1": BEARLAntVelocityConfig,
+    "OfflineHalfCheetahVelocityGymnasium-v1": BEARLHalfCheetahVelocityConfig,
+    "OfflineHopperVelocityGymnasium-v1": BEARLHopperVelocityConfig,
+    "OfflineSwimmerVelocityGymnasium-v1": BEARLSwimmerVelocityConfig,
+    "OfflineWalker2dVelocityGymnasium-v1": BEARLWalker2dVelocityConfig,
+    # safe_metadrive
+    "OfflineMetadrive-easysparse-v0": BEARLEasySparseConfig,
+    "OfflineMetadrive-easymean-v0": BEARLEasyMeanConfig,
+    "OfflineMetadrive-easydense-v0": BEARLEasyDenseConfig,
+    "OfflineMetadrive-mediumsparse-v0": BEARLMediumSparseConfig,
+    "OfflineMetadrive-mediummean-v0": BEARLMediumMeanConfig,
+    "OfflineMetadrive-mediumdense-v0": BEARLMediumDenseConfig,
+    "OfflineMetadrive-hardsparse-v0": BEARLHardSparseConfig,
+    "OfflineMetadrive-hardmean-v0": BEARLHardMeanConfig,
+    "OfflineMetadrive-harddense-v0": BEARLHardDenseConfig
 }

@@ -23,7 +23,7 @@ class CPQTrainConfig:
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
-    device: str = "cuda:0"
+    device: str = "cpu"
     threads: int = 4
     reward_scale: float = 0.1
     cost_scale: float = 1
@@ -34,7 +34,7 @@ class CPQTrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 100_000
+    update_steps: int = 300_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -205,14 +205,100 @@ class CPQPointPush2Config(CPQTrainConfig):
     episode_len: int = 1000
 
 
+@dataclass
+class CPQAntVelocityConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineAntVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CPQHalfCheetahVelocityConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CPQHopperVelocityConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineHopperVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CPQSwimmerVelocityConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineSwimmerVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CPQWalker2dVelocityConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineWalker2dVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class CPQEasySparseConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easysparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQEasyMeanConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easymean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQEasyDenseConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easydense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQMediumSparseConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQMediumMeanConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediummean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQMediumDenseConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumdense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQHardSparseConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQHardMeanConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardmean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class CPQHardDenseConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-harddense-v0"
+    episode_len: int = 1000
+
+
 CPQ_DEFAULT_CONFIG = {
+    # bullet_safety_gym
     "OfflineCarCircle-v0": CPQCarCircleConfig,
     "OfflineAntRun-v0": CPQAntRunConfig,
     "OfflineDroneRun-v0": CPQDroneRunConfig,
     "OfflineDroneCircle-v0": CPQDroneCircleConfig,
     "OfflineCarRun-v0": CPQCarRunConfig,
     "OfflineAntCircle-v0": CPQAntCircleConfig,
-
+    # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": CPQCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": CPQCarButton2Config,
     "OfflineCarCircle1Gymnasium-v0": CPQCarCircle1Config,
@@ -221,7 +307,7 @@ CPQ_DEFAULT_CONFIG = {
     "OfflineCarGoal2Gymnasium-v0": CPQCarGoal2Config,
     "OfflineCarPush1Gymnasium-v0": CPQCarPush1Config,
     "OfflineCarPush2Gymnasium-v0": CPQCarPush2Config,
-
+    # safety_gymnasium: point
     "OfflinePointButton1Gymnasium-v0": CPQPointButton1Config,
     "OfflinePointButton2Gymnasium-v0": CPQPointButton2Config,
     "OfflinePointCircle1Gymnasium-v0": CPQPointCircle1Config,
@@ -230,4 +316,20 @@ CPQ_DEFAULT_CONFIG = {
     "OfflinePointGoal2Gymnasium-v0": CPQPointGoal2Config,
     "OfflinePointPush1Gymnasium-v0": CPQPointPush1Config,
     "OfflinePointPush2Gymnasium-v0": CPQPointPush2Config,
+    # safety_gymnasium: velocity
+    "OfflineAntVelocityGymnasium-v1": CPQAntVelocityConfig,
+    "OfflineHalfCheetahVelocityGymnasium-v1": CPQHalfCheetahVelocityConfig,
+    "OfflineHopperVelocityGymnasium-v1": CPQHopperVelocityConfig,
+    "OfflineSwimmerVelocityGymnasium-v1": CPQSwimmerVelocityConfig,
+    "OfflineWalker2dVelocityGymnasium-v1": CPQWalker2dVelocityConfig,
+    # safe_metadrive
+    "OfflineMetadrive-easysparse-v0": CPQEasySparseConfig,
+    "OfflineMetadrive-easymean-v0": CPQEasyMeanConfig,
+    "OfflineMetadrive-easydense-v0": CPQEasyDenseConfig,
+    "OfflineMetadrive-mediumsparse-v0": CPQMediumSparseConfig,
+    "OfflineMetadrive-mediummean-v0": CPQMediumMeanConfig,
+    "OfflineMetadrive-mediumdense-v0": CPQMediumDenseConfig,
+    "OfflineMetadrive-hardsparse-v0": CPQHardSparseConfig,
+    "OfflineMetadrive-hardmean-v0": CPQHardMeanConfig,
+    "OfflineMetadrive-harddense-v0": CPQHardDenseConfig
 }

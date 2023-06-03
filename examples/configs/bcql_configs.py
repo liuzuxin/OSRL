@@ -23,7 +23,7 @@ class BCQLTrainConfig:
     task: str = "OfflineCarCircle-v0"
     dataset: str = None
     seed: int = 0
-    device: str = "cuda:0"
+    device: str = "cpu"
     threads: int = 4
     reward_scale: float = 0.1
     cost_scale: float = 1
@@ -36,7 +36,7 @@ class BCQLTrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 100_000
+    update_steps: int = 300_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -204,15 +204,100 @@ class BCQLPointPush2Config(BCQLTrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+@dataclass
+class BCQLAntVelocityConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineAntVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLHalfCheetahVelocityConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLHopperVelocityConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineHopperVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLSwimmerVelocityConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineSwimmerVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLWalker2dVelocityConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineWalker2dVelocityGymnasium-v1"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLEasySparseConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easysparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLEasyMeanConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easymean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLEasyDenseConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-easydense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLMediumSparseConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLMediumMeanConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediummean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLMediumDenseConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-mediumdense-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLHardSparseConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardsparse-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLHardMeanConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-hardmean-v0"
+    episode_len: int = 1000
+
+@dataclass
+class BCQLHardDenseConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineMetadrive-harddense-v0"
+    episode_len: int = 1000
+
 
 BCQL_DEFAULT_CONFIG = {
+    # bullet_safety_gym
     "OfflineCarCircle-v0": BCQLCarCircleConfig,
     "OfflineAntRun-v0": BCQLAntRunConfig,
     "OfflineDroneRun-v0": BCQLDroneRunConfig,
     "OfflineDroneCircle-v0": BCQLDroneCircleConfig,
     "OfflineCarRun-v0": BCQLCarRunConfig,
     "OfflineAntCircle-v0": BCQLAntCircleConfig,
-
+    # safety_gymnasium: car
     "OfflineCarButton1Gymnasium-v0": BCQLCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BCQLCarButton2Config,
     "OfflineCarCircle1Gymnasium-v0": BCQLCarCircle1Config,
@@ -221,7 +306,7 @@ BCQL_DEFAULT_CONFIG = {
     "OfflineCarGoal2Gymnasium-v0": BCQLCarGoal2Config,
     "OfflineCarPush1Gymnasium-v0": BCQLCarPush1Config,
     "OfflineCarPush2Gymnasium-v0": BCQLCarPush2Config,
-
+    # safety_gymnasium: point
     "OfflinePointButton1Gymnasium-v0": BCQLPointButton1Config,
     "OfflinePointButton2Gymnasium-v0": BCQLPointButton2Config,
     "OfflinePointCircle1Gymnasium-v0": BCQLPointCircle1Config,
@@ -230,4 +315,20 @@ BCQL_DEFAULT_CONFIG = {
     "OfflinePointGoal2Gymnasium-v0": BCQLPointGoal2Config,
     "OfflinePointPush1Gymnasium-v0": BCQLPointPush1Config,
     "OfflinePointPush2Gymnasium-v0": BCQLPointPush2Config,
+    # safety_gymnasium: velocity
+    "OfflineAntVelocityGymnasium-v1": BCQLAntVelocityConfig,
+    "OfflineHalfCheetahVelocityGymnasium-v1": BCQLHalfCheetahVelocityConfig,
+    "OfflineHopperVelocityGymnasium-v1": BCQLHopperVelocityConfig,
+    "OfflineSwimmerVelocityGymnasium-v1": BCQLSwimmerVelocityConfig,
+    "OfflineWalker2dVelocityGymnasium-v1": BCQLWalker2dVelocityConfig,
+    # safe_metadrive
+    "OfflineMetadrive-easysparse-v0": BCQLEasySparseConfig,
+    "OfflineMetadrive-easymean-v0": BCQLEasyMeanConfig,
+    "OfflineMetadrive-easydense-v0": BCQLEasyDenseConfig,
+    "OfflineMetadrive-mediumsparse-v0": BCQLMediumSparseConfig,
+    "OfflineMetadrive-mediummean-v0": BCQLMediumMeanConfig,
+    "OfflineMetadrive-mediumdense-v0": BCQLMediumDenseConfig,
+    "OfflineMetadrive-hardsparse-v0": BCQLHardSparseConfig,
+    "OfflineMetadrive-hardmean-v0": BCQLHardMeanConfig,
+    "OfflineMetadrive-harddense-v0": BCQLHardDenseConfig
 }
