@@ -90,6 +90,20 @@ class COptiDICEAntCircleConfig(COptiDICETrainConfig):
 
 
 @dataclass
+class COptiDICEBallRunConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class COptiDICEBallCircleConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
+
+
+@dataclass
 class COptiDICECarButton1Config(COptiDICETrainConfig):
     # training params
     task: str = "OfflineCarButton1Gymnasium-v0"
@@ -293,6 +307,8 @@ COptiDICE_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": COptiDICEDroneCircleConfig,
     "OfflineCarRun-v0": COptiDICECarRunConfig,
     "OfflineAntCircle-v0": COptiDICEAntCircleConfig,
+    "OfflineBallCircle-v0": COptiDICEBallCircleConfig,
+    "OfflineBallRun-v0": COptiDICEBallRunConfig,
     # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": COptiDICECarButton1Config,
     "OfflineCarButton2Gymnasium-v0": COptiDICECarButton2Config,

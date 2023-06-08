@@ -81,6 +81,20 @@ class BCAntCircleConfig(BCTrainConfig):
 
 
 @dataclass
+class BCBallRunConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class BCBallCircleConfig(BCTrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
+
+
+@dataclass
 class BCCarButton1Config(BCTrainConfig):
     # training params
     task: str = "OfflineCarButton1Gymnasium-v0"
@@ -283,6 +297,8 @@ BC_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": BCDroneCircleConfig,
     "OfflineCarRun-v0": BCCarRunConfig,
     "OfflineAntCircle-v0": BCAntCircleConfig,
+    "OfflineBallCircle-v0": BCBallCircleConfig,
+    "OfflineBallRun-v0": BCBallRunConfig,
     # safety_gymnasium: car
     "OfflineCarButton1Gymnasium-v0": BCCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BCCarButton2Config,

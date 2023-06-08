@@ -92,6 +92,19 @@ class CPQAntCircleConfig(CPQTrainConfig):
     episode_len: int = 500
 
 
+@dataclass
+class CPQBallRunConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class CPQBallCircleConfig(CPQTrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
+
 
 @dataclass
 class CPQCarButton1Config(CPQTrainConfig):
@@ -298,6 +311,8 @@ CPQ_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": CPQDroneCircleConfig,
     "OfflineCarRun-v0": CPQCarRunConfig,
     "OfflineAntCircle-v0": CPQAntCircleConfig,
+    "OfflineBallCircle-v0": CPQBallCircleConfig,
+    "OfflineBallRun-v0": CPQBallRunConfig,
     # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": CPQCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": CPQCarButton2Config,

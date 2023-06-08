@@ -164,15 +164,15 @@ class CDTCarRunConfig(CDTTrainConfig):
     episode_len: int = 200
     # training params
     task: str = "OfflineCarRun-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
-                                                     (300, 20), (400, 20), 
-                                                     (500, 20), (300, 40),
-                                                     (400, 40), (500, 40), 
-                                                     (500, 60))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((575.0, 10), 
+                                                     (575.0, 20), 
+                                                     (575.0, 40))
     # augmentation param
+    deg: int = 0
     max_reward: float = 600.0
     max_rew_decrease: float = 100
     min_reward: float = 1
+    device: str = "cuda:3"
 
 
 @dataclass
@@ -194,21 +194,39 @@ class CDTAntCircleConfig(CDTTrainConfig):
 
 
 @dataclass
-class CDTCarReachConfig(CDTTrainConfig):
+class CDTBallRunConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 100
+    # training params
+    task: str = "OfflineBallRun-v0"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((500.0, 10), 
+                                                     (500.0, 20), 
+                                                     (700.0, 40))
+    # augmentation param
+    deg: int = 2
+    max_reward: float = 1400.0
+    max_rew_decrease: float = 200
+    min_reward: float = 1
+    device: str = "cuda:2"
+
+
+@dataclass
+class CDTBallCircleConfig(CDTTrainConfig):
     # model params
     seq_len: int = 10
     episode_len: int = 200
     # training params
-    task: str = "OfflineCarReach-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 0), (300, 10), 
-                                                     (300, 20), (400, 20), 
-                                                     (500, 20), (300, 40),
-                                                     (400, 40), (500, 40), 
-                                                     (500, 60))
+    task: str = "OfflineBallCircle-v0"
+    target_returns: Tuple[Tuple[float, ...], ...] = ((700.0, 10), 
+                                                     (750.0, 20), 
+                                                     (800.0, 40))
     # augmentation param
-    max_reward: float = 300.0
+    deg: int = 2
+    max_reward: float = 1000.0
     max_rew_decrease: float = 200
     min_reward: float = 1
+    device: str = "cuda:1"
 
 
 @dataclass
@@ -568,6 +586,7 @@ class CDTEasySparseConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 @dataclass
@@ -575,6 +594,7 @@ class CDTEasyMeanConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 @dataclass
@@ -584,6 +604,7 @@ class CDTEasyDenseConfig(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-easydense-v0"
+    update_steps: int = 200_000
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
                                                      (350.0, 20), 
                                                      (400.0, 40))
@@ -600,6 +621,7 @@ class CDTMediumSparseConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 @dataclass
@@ -609,6 +631,7 @@ class CDTMediumMeanConfig(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-mediummean-v0"
+    update_steps: int = 200_000
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
                                                      (300.0, 20), 
                                                      (300.0, 40))
@@ -625,6 +648,7 @@ class CDTMediumDenseConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumdense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 @dataclass
@@ -634,6 +658,7 @@ class CDTHardSparseConfig(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-hardsparse-v0"
+    update_steps: int = 200_000
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
                                                      (350.0, 20), 
                                                      (400.0, 40))
@@ -649,6 +674,7 @@ class CDTHardSparseConfig(CDTTrainConfig):
 class CDTHardMeanConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
+    update_steps: int = 200_000
     episode_len: int = 1000
 
 
@@ -656,6 +682,7 @@ class CDTHardMeanConfig(CDTTrainConfig):
 class CDTHardDenseConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
+    update_steps: int = 200_000
     episode_len: int = 1000
 
     
@@ -667,6 +694,8 @@ CDT_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": CDTDroneCircleConfig,
     "OfflineCarRun-v0": CDTCarRunConfig,
     "OfflineAntCircle-v0": CDTAntCircleConfig,
+    "OfflineBallCircle-v0": CDTBallCircleConfig,
+    "OfflineBallRun-v0": CDTBallRunConfig,
     # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": CDTCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": CDTCarButton2Config,

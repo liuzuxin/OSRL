@@ -94,6 +94,20 @@ class BCQLAntCircleConfig(BCQLTrainConfig):
 
 
 @dataclass
+class BCQLBallRunConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class BCQLBallCircleConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
+
+
+@dataclass
 class BCQLCarButton1Config(BCQLTrainConfig):
     # training params
     task: str = "OfflineCarButton1Gymnasium-v0"
@@ -297,6 +311,8 @@ BCQL_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": BCQLDroneCircleConfig,
     "OfflineCarRun-v0": BCQLCarRunConfig,
     "OfflineAntCircle-v0": BCQLAntCircleConfig,
+    "OfflineBallCircle-v0": BCQLBallCircleConfig,
+    "OfflineBallRun-v0": BCQLBallRunConfig,
     # safety_gymnasium: car
     "OfflineCarButton1Gymnasium-v0": BCQLCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BCQLCarButton2Config,

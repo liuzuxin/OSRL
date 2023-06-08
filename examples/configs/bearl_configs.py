@@ -98,6 +98,20 @@ class BEARLAntCircleConfig(BEARLTrainConfig):
 
 
 @dataclass
+class BEARLBallRunConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class BEARLBallCircleConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
+
+
+@dataclass
 class BEARLCarButton1Config(BEARLTrainConfig):
     # training params
     task: str = "OfflineCarButton1Gymnasium-v0"
@@ -301,6 +315,8 @@ BEARL_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": BEARLDroneCircleConfig,
     "OfflineCarRun-v0": BEARLCarRunConfig,
     "OfflineAntCircle-v0": BEARLAntCircleConfig,
+    "OfflineBallCircle-v0": BEARLBallCircleConfig,
+    "OfflineBallRun-v0": BEARLBallRunConfig,
     # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": BEARLCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BEARLCarButton2Config,
