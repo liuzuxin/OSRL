@@ -15,7 +15,6 @@ def get_version() -> str:
 
 def get_install_requires() -> str:
     return [
-        "tianshou~=0.4.10",
         "gym>=0.23.1",
         "pyrallis==0.3.1",
         "pyyaml~=6.0",
