@@ -29,7 +29,6 @@ def get_install_requires() -> str:
         "python-dateutil==2.8.2",
         "psutil==5.9.5",
         "swig==4.1.1",
-        "OApackage==2.7.6"
     ]
 
 
