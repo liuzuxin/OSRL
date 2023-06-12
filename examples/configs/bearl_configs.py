@@ -16,7 +16,7 @@ class BEARLTrainConfig:
     # dataset params
     outliers_percent: float = None
     noise_scale: float = None
-    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    inpaint_ranges: Tuple[Tuple[float, float, float, float], ...] = None
     epsilon: float = None
     density: float = 1.0
     # training params
@@ -222,11 +222,13 @@ class BEARLPointPush2Config(BEARLTrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLAntVelocityConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineAntVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class BEARLHalfCheetahVelocityConfig(BEARLTrainConfig):
@@ -234,11 +236,13 @@ class BEARLHalfCheetahVelocityConfig(BEARLTrainConfig):
     task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLHopperVelocityConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineHopperVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class BEARLSwimmerVelocityConfig(BEARLTrainConfig):
@@ -246,65 +250,84 @@ class BEARLSwimmerVelocityConfig(BEARLTrainConfig):
     task: str = "OfflineSwimmerVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLWalker2dVelocityConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineWalker2dVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLEasySparseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLEasyMeanConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLEasyDenseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easydense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLMediumSparseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLMediumMeanConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediummean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLMediumDenseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumdense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLHardSparseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLHardMeanConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLHardDenseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 BEARL_DEFAULT_CONFIG = {

@@ -16,7 +16,7 @@ class CPQTrainConfig:
     # dataset params
     outliers_percent: float = None
     noise_scale: float = None
-    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    inpaint_ranges: Tuple[Tuple[float, float, float, float], ...] = None
     epsilon: float = None
     density: float = 1.0
     # training params
@@ -34,7 +34,7 @@ class CPQTrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 300_000
+    update_steps: int = 100_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -224,11 +224,13 @@ class CPQAntVelocityConfig(CPQTrainConfig):
     task: str = "OfflineAntVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class CPQHalfCheetahVelocityConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class CPQHopperVelocityConfig(CPQTrainConfig):
@@ -236,11 +238,13 @@ class CPQHopperVelocityConfig(CPQTrainConfig):
     task: str = "OfflineHopperVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class CPQSwimmerVelocityConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineSwimmerVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class CPQWalker2dVelocityConfig(CPQTrainConfig):
@@ -248,59 +252,77 @@ class CPQWalker2dVelocityConfig(CPQTrainConfig):
     task: str = "OfflineWalker2dVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class CPQEasySparseConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQEasyMeanConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQEasyDenseConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easydense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQMediumSparseConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQMediumMeanConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediummean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQMediumDenseConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumdense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQHardSparseConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQHardMeanConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class CPQHardDenseConfig(CPQTrainConfig):
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 CPQ_DEFAULT_CONFIG = {

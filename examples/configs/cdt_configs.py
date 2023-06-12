@@ -112,8 +112,8 @@ class CDTAntRunConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineAntRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((700.0, 10),
-                                                     (750.0, 30), 
-                                                     (800.0, 70))
+                                                     (750.0, 20), 
+                                                     (800.0, 40))
     # augmentation param
     deg: int = 3
     max_reward: float = 1000.0
@@ -129,8 +129,8 @@ class CDTDroneRunConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineDroneRun-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((400.0, 10), 
-                                                     (500.0, 30), 
-                                                     (600.0, 70))
+                                                     (500.0, 20), 
+                                                     (600.0, 40))
     # augmentation param
     deg: int = 1
     max_reward: float = 700.0
@@ -148,7 +148,7 @@ class CDTDroneCircleConfig(CDTTrainConfig):
     task: str = "OfflineDroneCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((700.0, 10), 
                                                      (750.0, 20), 
-                                                     (800.0, 50))
+                                                     (800.0, 40))
     # augmentation param
     deg: int = 1
     max_reward: float = 1000.0
@@ -183,8 +183,8 @@ class CDTAntCircleConfig(CDTTrainConfig):
     # training params
     task: str = "OfflineAntCircle-v0"
     target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
-                                                     (350.0, 50), 
-                                                     (400.0, 100))
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
     # augmentation param
     deg: int = 2
     max_reward: float = 500.0
@@ -236,9 +236,9 @@ class CDTCarButton1Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineCarButton1Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((35.0, 40), 
-                                                     (35.0, 80), 
-                                                     (35.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((35.0, 20), 
+                                                     (35.0, 40), 
+                                                     (35.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 45.0
@@ -254,9 +254,9 @@ class CDTCarButton2Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineCarButton2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((40.0, 40), 
-                                                     (40.0, 80), 
-                                                     (40.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((40.0, 20), 
+                                                     (40.0, 40), 
+                                                     (40.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 50.0
@@ -272,9 +272,9 @@ class CDTCarCircle1Config(CDTTrainConfig):
     episode_len: int = 500
     # training params
     task: str = "OfflineCarCircle1Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((20.0, 40), 
-                                                     (22.5, 80), 
-                                                     (25.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((20.0, 20), 
+                                                     (22.5, 40), 
+                                                     (25.0, 80))
     # augmentation param
     deg: int = 1
     max_reward: float = 30.0
@@ -290,9 +290,9 @@ class CDTCarCircle2Config(CDTTrainConfig):
     episode_len: int = 500
     # training params
     task: str = "OfflineCarCircle2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((20.0, 40), 
-                                                     (21.0, 80), 
-                                                     (22.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((20.0, 20), 
+                                                     (21.0, 40), 
+                                                     (22.0, 80))
     # augmentation param
     deg: int = 1
     max_reward: float = 30.0
@@ -326,9 +326,9 @@ class CDTCarGoal2Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineCarGoal2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((30.0, 40), 
-                                                     (30.0, 80), 
-                                                     (30.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((30.0, 20), 
+                                                     (30.0, 40), 
+                                                     (30.0, 80))
     # augmentation param
     deg: int = 1
     max_reward: float = 35.0
@@ -344,9 +344,9 @@ class CDTCarPush1Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineCarPush1Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((15.0, 40), 
-                                                     (15.0, 80), 
-                                                     (15.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((15.0, 20), 
+                                                     (15.0, 40), 
+                                                     (15.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 20.0
@@ -362,9 +362,9 @@ class CDTCarPush2Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflineCarPush2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((12.0, 40), 
-                                                     (12.0, 80), 
-                                                     (12.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((12.0, 20), 
+                                                     (12.0, 40), 
+                                                     (12.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 15.0
@@ -380,9 +380,9 @@ class CDTPointButton1Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflinePointButton1Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((40.0, 40), 
-                                                     (40.0, 80), 
-                                                     (40.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((40.0, 20), 
+                                                     (40.0, 40), 
+                                                     (40.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 45.0
@@ -398,9 +398,9 @@ class CDTPointButton2Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflinePointButton2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((40.0, 40), 
-                                                     (40.0, 80), 
-                                                     (40.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((40.0, 20), 
+                                                     (40.0, 40), 
+                                                     (40.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 50.0
@@ -416,9 +416,9 @@ class CDTPointCircle1Config(CDTTrainConfig):
     episode_len: int = 500
     # training params
     task: str = "OfflinePointCircle1Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((50.0, 40), 
-                                                     (52.5, 80), 
-                                                     (55.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((50.0, 20), 
+                                                     (52.5, 40), 
+                                                     (55.0, 80))
     # augmentation param
     deg: int = 1
     max_reward: float = 65.0
@@ -434,9 +434,9 @@ class CDTPointCircle2Config(CDTTrainConfig):
     episode_len: int = 500
     # training params
     task: str = "OfflinePointCircle2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((45.0, 40), 
-                                                     (47.5, 80), 
-                                                     (50.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((45.0, 20), 
+                                                     (47.5, 40), 
+                                                     (50.0, 80))
     # augmentation param
     deg: int = 1
     max_reward: float = 55.0
@@ -470,9 +470,9 @@ class CDTPointGoal2Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflinePointGoal2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((30.0, 40), 
-                                                     (30.0, 80), 
-                                                     (30.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((30.0, 20), 
+                                                     (30.0, 40), 
+                                                     (30.0, 80))
     # augmentation param
     deg: int = 1
     max_reward: float = 35.0
@@ -488,9 +488,9 @@ class CDTPointPush1Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflinePointPush1Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((15.0, 40), 
-                                                     (15.0, 80), 
-                                                     (15.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((15.0, 20), 
+                                                     (15.0, 40), 
+                                                     (15.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 20.0
@@ -506,9 +506,9 @@ class CDTPointPush2Config(CDTTrainConfig):
     episode_len: int = 1000
     # training params
     task: str = "OfflinePointPush2Gymnasium-v0"
-    target_returns: Tuple[Tuple[float, ...], ...] = ((12.0, 40), 
-                                                     (12.0, 80), 
-                                                     (12.0, 120))
+    target_returns: Tuple[Tuple[float, ...], ...] = ((12.0, 20), 
+                                                     (12.0, 40), 
+                                                     (12.0, 80))
     # augmentation param
     deg: int = 0
     max_reward: float = 15.0
@@ -519,9 +519,21 @@ class CDTPointPush2Config(CDTTrainConfig):
 
 @dataclass
 class CDTAntVelocityConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineAntVelocityGymnasium-v1"
-    episode_len: int = 1000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((2800.0, 20), 
+                                                     (2800.0, 40), 
+                                                     (2800.0, 80))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 3000.0
+    max_rew_decrease: float = 500
+    min_reward: float = 1
+    device: str = "cuda:1"
+
 
 @dataclass
 class CDTHalfCheetahVelocityConfig(CDTTrainConfig):
@@ -540,11 +552,24 @@ class CDTHalfCheetahVelocityConfig(CDTTrainConfig):
     min_reward: float = 1
     device: str = "cuda:2"
 
+
 @dataclass
 class CDTHopperVelocityConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineHopperVelocityGymnasium-v1"
-    episode_len: int = 1000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((1750.0, 20), 
+                                                     (1750.0, 40), 
+                                                     (1750.0, 80))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 2000.0
+    max_rew_decrease: float = 300
+    min_reward: float = 1
+    device: str = "cuda:2"
+
 
 @dataclass
 class CDTSwimmerVelocityConfig(CDTTrainConfig):
@@ -562,6 +587,7 @@ class CDTSwimmerVelocityConfig(CDTTrainConfig):
     max_rew_decrease: float = 50
     min_reward: float = 1
     device: str = "cuda:2"
+
 
 @dataclass
 class CDTWalker2dVelocityConfig(CDTTrainConfig):
@@ -583,18 +609,40 @@ class CDTWalker2dVelocityConfig(CDTTrainConfig):
 
 @dataclass
 class CDTEasySparseConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
-    episode_len: int = 1000
     update_steps: int = 200_000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
+    # augmentation param
+    deg: int = 2
+    max_reward: float = 500.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:3"
 
 
 @dataclass
 class CDTEasyMeanConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
-    episode_len: int = 1000
     update_steps: int = 200_000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
+    # augmentation param
+    deg: int = 2
+    max_reward: float = 500.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:3"
 
 
 @dataclass
@@ -618,10 +666,22 @@ class CDTEasyDenseConfig(CDTTrainConfig):
 
 @dataclass
 class CDTMediumSparseConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
-    episode_len: int = 1000
     update_steps: int = 200_000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (300.0, 20), 
+                                                     (300.0, 40))
+    # augmentation param
+    deg: int = 0
+    max_reward: float = 300.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:3"
+
 
 
 @dataclass
@@ -663,7 +723,7 @@ class CDTHardSparseConfig(CDTTrainConfig):
                                                      (350.0, 20), 
                                                      (400.0, 40))
     # augmentation param
-    deg: int = 2
+    deg: int = 1
     max_reward: float = 500.0
     max_rew_decrease: float = 100
     min_reward: float = 1
@@ -672,18 +732,41 @@ class CDTHardSparseConfig(CDTTrainConfig):
 
 @dataclass
 class CDTHardMeanConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
     update_steps: int = 200_000
-    episode_len: int = 1000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 500.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:2"
 
 
 @dataclass
 class CDTHardDenseConfig(CDTTrainConfig):
+    # model params
+    seq_len: int = 10
+    episode_len: int = 1000
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
     update_steps: int = 200_000
-    episode_len: int = 1000
+    target_returns: Tuple[Tuple[float, ...], ...] = ((300.0, 10), 
+                                                     (350.0, 20), 
+                                                     (400.0, 40))
+    # augmentation param
+    deg: int = 1
+    max_reward: float = 500.0
+    max_rew_decrease: float = 100
+    min_reward: float = 1
+    device: str = "cuda:2"
+
 
     
 CDT_DEFAULT_CONFIG = {
