@@ -13,12 +13,12 @@ from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
 from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS, DENSITY_CFG
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from fsrl.utils import WandbLogger, DummyLogger
+from fsrl.utils import WandbLogger
 
 from osrl.common import TransitionDataset
 from osrl.common.dataset import process_bc_dataset
 from osrl.algorithms import BC, BCTrainer
-from fsrl.utils.exp_util import auto_name, seed_all
+from osrl.common.exp_util import auto_name, seed_all
 from examples.configs.bc_configs import BCTrainConfig, BC_DEFAULT_CONFIG
 
 
@@ -39,10 +39,9 @@ def train(args: BCTrainConfig):
         args.group = args.task + "-cost-" + str(int(args.cost_limit))
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
-    # logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
+    logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
     # # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
-    # logger.save_config(cfg, verbose=args.verbose)
-    logger = DummyLogger()
+    logger.save_config(cfg, verbose=args.verbose)
 
     # the cost scale is down in trainer rollout
     env = gym.make(args.task)

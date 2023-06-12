@@ -9,7 +9,7 @@ from pyrallis import field
 import torch
 
 from osrl.algorithms import BC, BCTrainer
-from fsrl.utils.exp_util import load_config_and_model, seed_all
+from osrl.common.exp_util import load_config_and_model, seed_all
 
 
 @dataclass

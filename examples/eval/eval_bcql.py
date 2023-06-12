@@ -10,7 +10,7 @@ import torch
 
 from osrl.algorithms import BCQL, BCQLTrainer
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from fsrl.utils.exp_util import load_config_and_model, seed_all
+from osrl.common.exp_util import load_config_and_model, seed_all
 
 
 @dataclass

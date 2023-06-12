@@ -1,4 +1,4 @@
-from fsrl.utils.exp_util import ExperimentGrid
+from osrl.common.exp_util import ExperimentGrid
 
 if __name__ == "__main__":
 

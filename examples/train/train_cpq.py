@@ -17,7 +17,7 @@ from fsrl.utils import WandbLogger
 
 from osrl.common import TransitionDataset
 from osrl.algorithms import CPQ, CPQTrainer
-from fsrl.utils.exp_util import auto_name, seed_all
+from osrl.common.exp_util import auto_name, seed_all
 from examples.configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
 
 
