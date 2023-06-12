@@ -26,7 +26,10 @@ def get_install_requires() -> str:
         "wandb~=0.14.0",
         "h5py>=2.10.0",  # to match tensorflow's minimal requirements
         "protobuf~=3.19.0",  # breaking change, sphinx fail
-        "OApackage"
+        "python-dateutil==2.8.2",
+        "psutil==5.9.5",
+        "swig==4.1.1",
+        "OApackage==2.7.6"
     ]
 
 
