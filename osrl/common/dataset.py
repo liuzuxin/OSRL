@@ -289,8 +289,8 @@ def augmentation(trajs: list,
     cost_ret = np.array(cost_ret, dtype=np.float64)
     
     # grid filer to filter outliers
-    cmin, cmax = 0, 70
-    rmin, rmax = 100, 1000
+    cmin, cmax = np.min(cost_ret), np.max(cost_ret)
+    rmin, rmax = np.min(rew_ret), np.max(rew_ret)
     cbins, rbins = 10, 50
     max_npb, min_npb = 10, 2
     cost_ret, rew_ret, trajs, indices = filter_trajectory(
