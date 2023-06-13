@@ -11,7 +11,7 @@ import pyrallis
 import torch
 from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
-from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS, DENSITY_CFG
+from dsrl.infos import DENSITY_CFG
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from fsrl.utils import WandbLogger
 
@@ -29,7 +29,6 @@ def train(args: BCTrainConfig):
         torch.set_num_threads(args.threads)
 
     # setup logger
-    args.episode_len = DEFAULT_MAX_EPISODE_STEPS[args.task.split("-")[0][len("Offline"):][:-len("Gymnasium")]]
     cfg = asdict(args)
     default_cfg = asdict(BC_DEFAULT_CONFIG[args.task]())
     if args.name is None:
@@ -47,6 +46,7 @@ def train(args: BCTrainConfig):
     env = gym.make(args.task)
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
+
     cbins, rbins, max_npb, min_npb = None, None, None, None
     if args.density != 1.0:
         density_cfg = DENSITY_CFG[args.task+"_density"+str(args.density)]
