@@ -26,8 +26,7 @@ def discounted_cumsum(x: np.ndarray, gamma: float) -> np.ndarray:
     return cumsum
 
 
-def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: str, 
-                       frontier_fn=None, frontier_range=None):
+def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: str):
     """
     Processes a givne dataset for behavior cloning and its variants.
 
@@ -80,15 +79,12 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
             # high cost trajectories
             if cost_returns[0] >= 2 * cost_limit:
                 selected_transition[start:end] = 1
-        elif bc_mode == "frontier":
-            # trajectories that are near the Pareto frontier
-            if frontier_fn(cost_returns[0]) - frontier_range <= reward_returns[0] and \
-               reward_returns[0] <= frontier_fn(cost_returns[0]) + frontier_range:
-                selected_transition[start:end] = 1
         elif bc_mode == "boundary":
             # trajectories that are near the cost limit
             if 0.5 * cost_limit < cost_returns[0] and cost_returns[0] <= 1.5 * cost_limit:
                 selected_transition[start:end] = 1
+        else:
+            raise NotImplementedError
 
     for k, v in dataset.items():
         dataset[k] = v[selected_transition == 1]

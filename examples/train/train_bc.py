@@ -58,20 +58,7 @@ def train(args: BCTrainConfig):
                                 args.inpaint_ranges, args.epsilon, args.density,
                                 cbins=cbins, rbins=rbins, max_npb=max_npb, min_npb=min_npb)
 
-    # function w.r.t episode cost
-    frontier_fn = {}
-    frontier_fn["OfflineAntCircle-v0"] = lambda x: 600 + 4 * x
-    frontier_fn["OfflineAntRun-v0"] = lambda x: 600 + 10 / 3 * x
-    frontier_fn["OfflineCarCircle-v0"] = lambda x: 450 + 5 / 3 * x
-    frontier_fn["OfflineCarRun-v0"] = lambda x: 600
-    frontier_fn["OfflineDroneRun-v0"] = lambda x: 325 + 125 / 70 * x
-    frontier_fn["OfflineDroneCircle-v0"] = lambda x: 600 + 4 * x
-    frontier_range = 50
-
-    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode,
-                    #    frontier_fn[args.task], 
-                       None,
-                       frontier_range)
+    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode)
 
     # model & optimizer & scheduler setup
     state_dim = env.observation_space.shape[0]
