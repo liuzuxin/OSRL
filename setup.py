@@ -15,6 +15,7 @@ def get_version() -> str:
 def get_install_requires() -> str:
     return [
         "dsrl",
+        "fast-safe-rl"
         "pyrallis==0.3.1",
         "pyyaml~=6.0",
         "scipy~=1.10.1",
