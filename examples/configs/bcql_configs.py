@@ -1,5 +1,6 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
+
 from pyrallis import field
 
 

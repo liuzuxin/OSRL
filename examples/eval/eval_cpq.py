@@ -1,15 +1,15 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
-import gymnasium as gym  # noqa
 import dsrl
+import gymnasium as gym  # noqa
 import numpy as np
 import pyrallis
-from pyrallis import field
 import torch
+from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
+from pyrallis import field
 
 from osrl.algorithms import CPQ, CPQTrainer
-from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from osrl.common.exp_util import load_config_and_model, seed_all
 
 

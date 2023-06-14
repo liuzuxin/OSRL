@@ -1,13 +1,12 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
+import math
+from typing import Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distributions.normal import Normal
 from torch import distributions as pyd
-
-import numpy as np
-import math
+from torch.distributions.normal import Normal
 
 
 def mlp(sizes, activation, output_activation=nn.Identity):
@@ -44,7 +43,9 @@ class MLPGaussianPerturbationActor(nn.Module):
         act_limit (float): The absolute value of the limits of the action space.
     """
 
-    def __init__(self, obs_dim, act_dim, hidden_sizes, activation, phi=0.05, act_limit=1):
+    def __init__(
+        self, obs_dim, act_dim, hidden_sizes, activation, phi=0.05, act_limit=1
+    ):
         super().__init__()
         pi_sizes = [obs_dim + act_dim] + list(hidden_sizes) + [act_dim]
         self.pi = mlp(pi_sizes, activation, nn.Tanh)
@@ -68,6 +69,7 @@ class MLPActor(nn.Module):
         activation (Type[nn.Module]): The activation function to use between layers.
         act_limit (float, optional): The upper limit of the action space.
     """
+
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit=1):
         super().__init__()
         pi_sizes = [obs_dim] + list(hidden_sizes) + [act_dim]
@@ -92,16 +94,25 @@ class MLPGaussianActor(nn.Module):
         activation (Type[nn.Module]): The activation function to use between layers.
         device (str): The device to use for computation (cpu or cuda).
     """
-    def __init__(self, obs_dim, act_dim, action_low, action_high, hidden_sizes,
-                 activation, device="cpu"):
+
+    def __init__(
+        self,
+        obs_dim,
+        act_dim,
+        action_low,
+        action_high,
+        hidden_sizes,
+        activation,
+        device="cpu"
+    ):
         super().__init__()
         self.device = device
         self.action_low = torch.nn.Parameter(
-                            torch.tensor(action_low, device=device)[None, ...], 
-                            requires_grad=False)  # (1, act_dim)
+            torch.tensor(action_low, device=device)[None, ...], requires_grad=False
+        )  # (1, act_dim)
         self.action_high = torch.nn.Parameter(
-                            torch.tensor(action_high, device=device)[None, ...],
-                            requires_grad=False)  # (1, act_dim)
+            torch.tensor(action_high, device=device)[None, ...], requires_grad=False
+        )  # (1, act_dim)
         log_std = -0.5 * np.ones(act_dim, dtype=np.float32)
         self.log_std = torch.nn.Parameter(torch.as_tensor(log_std))
         self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
@@ -114,7 +125,8 @@ class MLPGaussianActor(nn.Module):
 
     def _log_prob_from_distribution(self, pi, act):
         return pi.log_prob(act).sum(
-            axis=-1)  # Last axis sum needed for Torch Normal distribution
+            axis=-1
+        )  # Last axis sum needed for Torch Normal distribution
 
     def forward(self, obs, act=None, deterministic=False):
         '''
@@ -134,6 +146,8 @@ class MLPGaussianActor(nn.Module):
 
 LOG_STD_MAX = 2
 LOG_STD_MIN = -20
+
+
 class SquashedGaussianMLPActor(nn.Module):
     '''
     A MLP Gaussian actor, can also be used as a deterministic actor
@@ -151,12 +165,14 @@ class SquashedGaussianMLPActor(nn.Module):
         self.mu_layer = nn.Linear(hidden_sizes[-1], act_dim)
         self.log_std_layer = nn.Linear(hidden_sizes[-1], act_dim)
 
-    def forward(self,
-                obs,
-                deterministic=False,
-                with_logprob=True,
-                with_distribution=False,
-                return_pretanh_value=False):
+    def forward(
+        self,
+        obs,
+        deterministic=False,
+        with_logprob=True,
+        with_distribution=False,
+        return_pretanh_value=False
+    ):
         net_out = self.net(obs)
         mu = self.mu_layer(net_out)
         log_std = self.log_std_layer(net_out)
@@ -174,14 +190,16 @@ class SquashedGaussianMLPActor(nn.Module):
         if with_logprob:
             # Compute logprob from Gaussian, and then apply correction for Tanh squashing.
             logp_pi = pi_distribution.log_prob(pi_action).sum(axis=-1)
-            logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(axis=1)
+            logp_pi -= (2 * (np.log(2) - pi_action - F.softplus(-2 * pi_action))).sum(
+                axis=1
+            )
         else:
             logp_pi = None
 
         # for BEARL only
         if return_pretanh_value:
             return torch.tanh(pi_action), pi_action
-        
+
         pi_action = torch.tanh(pi_action)
 
         if with_distribution:
@@ -204,10 +222,12 @@ class EnsembleQCritic(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, num_q=2):
         super().__init__()
         assert num_q >= 1, "num_q param should be greater than 1"
-        self.q_nets = nn.ModuleList([
-            mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], nn.ReLU)
-            for i in range(num_q)
-        ])
+        self.q_nets = nn.ModuleList(
+            [
+                mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], nn.ReLU)
+                for i in range(num_q)
+            ]
+        )
 
     def forward(self, obs, act=None):
         # Squeeze is critical to ensure value has the right shape.
@@ -241,14 +261,18 @@ class EnsembleDoubleQCritic(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes, activation, num_q=2):
         super().__init__()
         assert num_q >= 1, "num_q param should be greater than 1"
-        self.q1_nets = nn.ModuleList([
-            mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], nn.ReLU)
-            for i in range(num_q)
-        ])
-        self.q2_nets = nn.ModuleList([
-            mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], nn.ReLU)
-            for i in range(num_q)
-        ])
+        self.q1_nets = nn.ModuleList(
+            [
+                mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], nn.ReLU)
+                for i in range(num_q)
+            ]
+        )
+        self.q2_nets = nn.ModuleList(
+            [
+                mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], nn.ReLU)
+                for i in range(num_q)
+            ]
+        )
 
     def forward(self, obs, act):
         # Squeeze is critical to ensure value has the right shape.
@@ -283,6 +307,7 @@ class VAE(nn.Module):
         act_lim (float): The upper limit of the action space.
         device (str): The device to use for computation (cpu or cuda).
     """
+
     def __init__(self, obs_dim, act_dim, hidden_size, latent_dim, act_lim, device="cpu"):
         super(VAE, self).__init__()
         self.e1 = nn.Linear(obs_dim + act_dim, hidden_size)
@@ -314,8 +339,9 @@ class VAE(nn.Module):
 
     def decode(self, obs, z=None):
         if z is None:
-            z = torch.randn((obs.shape[0], self.latent_dim)).clamp(-0.5, 0.5).to(self.device)
-            
+            z = torch.randn((obs.shape[0], self.latent_dim)).clamp(-0.5,
+                                                                   0.5).to(self.device)
+
         a = F.relu(self.d1(torch.cat([obs, z], 1)))
         a = F.relu(self.d2(a))
         return self.act_lim * torch.tanh(self.d3(a))
@@ -323,9 +349,16 @@ class VAE(nn.Module):
     # for BEARL only
     def decode_multiple(self, obs, z=None, num_decode=10):
         if z is None:
-            z = torch.randn((obs.shape[0], num_decode, self.latent_dim)).clamp(-0.5, 0.5).to(self.device)
-            
-        a = F.relu(self.d1(torch.cat([obs.unsqueeze(0).repeat(num_decode, 1, 1).permute(1, 0, 2), z], 2)))
+            z = torch.randn((obs.shape[0], num_decode, self.latent_dim)
+                            ).clamp(-0.5, 0.5).to(self.device)
+
+        a = F.relu(
+            self.d1(
+                torch.cat(
+                    [obs.unsqueeze(0).repeat(num_decode, 1, 1).permute(1, 0, 2), z], 2
+                )
+            )
+        )
         a = F.relu(self.d2(a))
         return torch.tanh(self.d3(a)), self.d3(a)
 
@@ -359,8 +392,10 @@ class LagrangianPIDController:
         self.error_integral = torch.mean(F.relu(self.error_integral + error_new))
         self.error_old = error_new
 
-        multiplier = F.relu(self.KP * F.relu(error_new) + self.KI * self.error_integral +
-                          self.KD * error_diff)
+        multiplier = F.relu(
+            self.KP * F.relu(error_new) + self.KI * self.error_integral +
+            self.KD * error_diff
+        )
         return torch.mean(multiplier)
 
 
@@ -380,7 +415,9 @@ class TransformerBlock(nn.Module):
         self.norm2 = nn.LayerNorm(embedding_dim)
         self.drop = nn.Dropout(residual_dropout)
 
-        self.attention = nn.MultiheadAttention(embedding_dim, num_heads, attention_dropout, batch_first=True)
+        self.attention = nn.MultiheadAttention(
+            embedding_dim, num_heads, attention_dropout, batch_first=True
+        )
         self.mlp = nn.Sequential(
             nn.Linear(embedding_dim, 4 * embedding_dim),
             nn.GELU(),
@@ -388,11 +425,17 @@ class TransformerBlock(nn.Module):
             nn.Dropout(residual_dropout),
         )
         # True value indicates that the corresponding position is not allowed to attend
-        self.register_buffer("causal_mask", ~torch.tril(torch.ones(seq_len, seq_len)).to(bool))
+        self.register_buffer(
+            "causal_mask", ~torch.tril(torch.ones(seq_len, seq_len)).to(bool)
+        )
         self.seq_len = seq_len
 
     # [batch_size, seq_len, emb_dim] -> [batch_size, seq_len, emb_dim]
-    def forward(self, x: torch.Tensor, padding_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        padding_mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
         causal_mask = self.causal_mask[:x.shape[1], :x.shape[1]]
 
         norm_x = self.norm1(x)
@@ -410,8 +453,8 @@ class TransformerBlock(nn.Module):
         x = x + self.drop(attention_out)
         x = x + self.mlp(self.norm2(x))
         return x
-    
-    
+
+
 class TanhTransform(pyd.transforms.Transform):
     domain = pyd.constraints.real
     codomain = pyd.constraints.interval(-1.0, 1.0)

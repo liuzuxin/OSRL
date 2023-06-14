@@ -1,19 +1,12 @@
-import datetime
-import itertools
-import json
 import os
 import os.path as osp
 import random
-import subprocess
-import time
 import uuid
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, Optional, Sequence
 
 import numpy as np
 import torch
 import yaml
-
-from fsrl.utils.logger.logger_util import colorize
 
 
 def seed_all(seed=1029, others: Optional[list] = None):
@@ -81,9 +74,6 @@ def load_config_and_model(path: str, best: bool = False):
         raise ValueError(f"{path} doesn't exist!")
 
 
-###################### naming utils ######################
-
-
 def to_string(values):
     '''
     Recursively convert a sequence or dictionary of values to a string representation.
@@ -124,12 +114,14 @@ DEFAULT_KEY_ABBRE = {
 }
 
 
-def auto_name(default_cfg: dict,
-              current_cfg: dict,
-              prefix: str = "",
-              suffix: str = "",
-              skip_keys: list = DEFAULT_SKIP_KEY,
-              key_abbre: dict = DEFAULT_KEY_ABBRE) -> str:
+def auto_name(
+    default_cfg: dict,
+    current_cfg: dict,
+    prefix: str = "",
+    suffix: str = "",
+    skip_keys: list = DEFAULT_SKIP_KEY,
+    key_abbre: dict = DEFAULT_KEY_ABBRE
+) -> str:
     '''
     Automatic generate the experiment name by comparing the current config with the default one.
 
@@ -159,92 +151,3 @@ def auto_name(default_cfg: dict,
     name = "default" if not len(name) else name
     name = f"{name}-{str(uuid.uuid4())[:4]}"
     return name
-
-
-class ExperimentGrid():
-
-    def __init__(self, log_name=None) -> None:
-        """
-        log_name : str, optional
-            The name of the grid experiment.
-        """
-        self.log_root = log_name or datetime.datetime.now().strftime("%m-%d_%H-%M-%S")
-        os.makedirs(os.path.join(os.getcwd(), 'logs', self.log_root), exist_ok=True)
-        self.log_root = os.path.join(os.getcwd(), 'logs', self.log_root)
-
-    def run(self,
-            instructions: List[str],
-            exp_names: Optional[List[str]] = None,
-            gpus: List[int] = [0],
-            max_parallel: int = 1,
-            **kwargs: dict) -> None:
-        """
-        Execute experiments in parallel and save logs.
-
-        Parameters:
-        ----------
-        instructions : List[str]
-            The command line instruction for each experiment.
-        exp_names : List[str], optional
-            The name for each experiment.
-        gpus : List[int], default [0]
-            The GPU ID for each experiment.
-        max_parallel : int, default 1
-            The maximum number of experiments to run in parallel.
-        """
-        exp_names = exp_names or [f"exp_{i}" for i in range(len(instructions))]
-        num_gpu = len(gpus)
-        running_experiments = []
-
-        for i, ins in enumerate(instructions):
-            while len(running_experiments) >= max_parallel:
-                running_experiments = [
-                    p for p in running_experiments if p.poll() is None
-                ]
-                time.sleep(1)
-
-            print(colorize(f"Running experiment {i}", "green", True) + f": {ins}")
-            redirect = f"> {self.log_root}/{exp_names[i]}_gpu{gpus[i % num_gpu]}.out"
-            command = f"CUDA_VISIBLE_DEVICES={gpus[i % num_gpu]} {instructions[i]} {redirect}"
-            p = subprocess.Popen(command, shell=True)
-            running_experiments.append(p)
-
-        while running_experiments:
-            running_experiments = [p for p in running_experiments if p.poll() is None]
-            time.sleep(1)
-
-    def compose(self,
-                template: str,
-                args: List[List],
-                dump_param: Optional[bool] = True,
-                suffix: Optional[str] = None) -> List[str]:
-        """
-        Generate a list of instructions from a template and arguments.
-
-        Parameters:
-        ----------
-        template : str
-            The template of the instruction in the form of a format string.
-        args : List[List]
-            The list of arguments for each instruction.
-        dump_param : bool, optional, default True
-            If True, dump the args and template to a file.
-        suffix : str, optional
-            The suffix for the dumped file.
-
-        Returns:
-        ----------
-        List[str]
-            The list of instructions ready to run.
-        """
-        if dump_param:
-            os.makedirs(os.path.join(self.log_root, 'param'), exist_ok=True)
-            with open(os.path.join(self.log_root, f"param/args_{suffix}.json"),
-                      "w") as f:
-                json.dump(args, f)
-            with open(os.path.join(self.log_root, f"param/template_{suffix}.json"),
-                      "w") as f:
-                json.dump(template, f)
-
-        all_combinations = list(itertools.product(*args))
-        return [template.format(*combination) for combination in all_combinations]

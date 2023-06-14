@@ -1,19 +1,14 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
-from collections import defaultdict
-from dataclasses import asdict, dataclass
-
 import gymnasium as gym
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
-from torch.nn import functional as F  # noqa
+from fsrl.utils import DummyLogger, WandbLogger
 from torch import distributions as pyd
 from torch.distributions.beta import Beta
+from torch.nn import functional as F  # noqa
+from tqdm.auto import trange  # noqa
 
-from fsrl.utils import WandbLogger, DummyLogger
-from osrl.common.net import SquashedGaussianMLPActor, EnsembleQCritic
+from osrl.common.net import EnsembleQCritic, SquashedGaussianMLPActor
 
 
 def get_f_div_fn(f_type: str):
@@ -28,9 +23,10 @@ def get_f_div_fn(f_type: str):
         f_prime_inv_fn = lambda x: x + 1
 
     elif f_type == 'softchi':
-        f_fn = lambda x: torch.where(x < 1,
-                                     x * (torch.log(x + 1e-10) - 1) + 1, 0.5 *
-                                     (x - 1)**2)
+        f_fn = lambda x: torch.where(
+            x < 1,
+            x * (torch.log(x + 1e-10) - 1) + 1, 0.5 * (x - 1)**2
+        )
         f_prime_inv_fn = lambda x: torch.where(x < 0, torch.exp(x.clamp(max=0.0)), x + 1)
 
     elif f_type == 'kl':
@@ -69,24 +65,26 @@ class COptiDICE(nn.Module):
         device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
     """
 
-    def __init__(self,
-                 state_dim: int,
-                 action_dim: int,
-                 max_action: float,
-                 f_type: str,
-                 init_state_propotion: float,
-                 observations_std: np.ndarray,
-                 actions_std: np.ndarray,
-                 a_hidden_sizes: list = [128, 128],
-                 c_hidden_sizes: list = [128, 128],
-                 gamma: float = 0.99,
-                 alpha: float = 0.5,
-                 cost_ub_epsilon: float = 0.01,
-                 num_nu: int = 1,
-                 num_chi: int = 1,
-                 cost_limit: int = 10,
-                 episode_len: int = 300,
-                 device: str = "cpu"):
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        max_action: float,
+        f_type: str,
+        init_state_propotion: float,
+        observations_std: np.ndarray,
+        actions_std: np.ndarray,
+        a_hidden_sizes: list = [128, 128],
+        c_hidden_sizes: list = [128, 128],
+        gamma: float = 0.99,
+        alpha: float = 0.5,
+        cost_ub_epsilon: float = 0.01,
+        num_nu: int = 1,
+        num_chi: int = 1,
+        cost_limit: int = 10,
+        episode_len: int = 300,
+        device: str = "cpu"
+    ):
         super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -102,23 +100,19 @@ class COptiDICE(nn.Module):
         self.episode_len = episode_len
         self.device = device
 
-        self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len) / (
-            1 - self.gamma) / self.episode_len
+        self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len
+                                      ) / (1 - self.gamma) / self.episode_len
         self.tau = torch.ones(1, requires_grad=True, device=self.device)
         self.lmbda = torch.ones(1, requires_grad=True, device=self.device)
-        self.actor = SquashedGaussianMLPActor(self.state_dim, self.action_dim,
-                                              self.a_hidden_sizes,
-                                              nn.ReLU).to(self.device)
-        self.nu_network = EnsembleQCritic(self.state_dim,
-                                          0,
-                                          self.c_hidden_sizes,
-                                          nn.ReLU,
-                                          num_q=self.num_nu).to(self.device)
-        self.chi_network = EnsembleQCritic(self.state_dim,
-                                           0,
-                                           self.c_hidden_sizes,
-                                           nn.ReLU,
-                                           num_q=self.num_chi).to(self.device)
+        self.actor = SquashedGaussianMLPActor(
+            self.state_dim, self.action_dim, self.a_hidden_sizes, nn.ReLU
+        ).to(self.device)
+        self.nu_network = EnsembleQCritic(
+            self.state_dim, 0, self.c_hidden_sizes, nn.ReLU, num_q=self.num_nu
+        ).to(self.device)
+        self.chi_network = EnsembleQCritic(
+            self.state_dim, 0, self.c_hidden_sizes, nn.ReLU, num_q=self.num_chi
+        ).to(self.device)
 
         self.f_fn, self.f_prime_inv_fn = get_f_div_fn(f_type)
 
@@ -141,9 +135,9 @@ class COptiDICE(nn.Module):
         # 1. Learn the optimal distribution
         self._lmbda = F.softplus(self.lmbda)  # lmbda >= 0
 
-        nu_s, nu_s_next, e_nu_lambda, w_sa = self._optimal_w(observations,
-                                                             next_observations, rewards,
-                                                             costs, done)
+        nu_s, nu_s_next, e_nu_lambda, w_sa = self._optimal_w(
+            observations, next_observations, rewards, costs, done
+        )
         nu_init = nu_s * is_init / self.init_state_propotion
         w_sa_no_grad = w_sa.detach()
         # divergence between distributions of policy & dataset
@@ -208,8 +202,9 @@ class COptiDICE(nn.Module):
         _, _, dist = self.actor.forward(observations + obs_eps, False, True, True)
 
         with torch.no_grad():
-            _, _, e_nu_lambda, w_sa = self._optimal_w(observations, next_observations,
-                                                      rewards, costs, done)
+            _, _, e_nu_lambda, w_sa = self._optimal_w(
+                observations, next_observations, rewards, costs, done
+            )
 
         actor_loss = -(w_sa * dist.log_prob(actions + act_eps).sum(axis=-1)).mean()
         self.actor_optim.zero_grad()
@@ -237,10 +232,9 @@ class COptiDICE(nn.Module):
         self.lmbda_optim = torch.optim.Adam([self.lmbda], lr=scalar_lr)
         self.tau_optim = torch.optim.Adam([self.tau], lr=scalar_lr)
 
-    def act(self,
-            obs: np.ndarray,
-            deterministic: bool = False,
-            with_logprob: bool = False):
+    def act(
+        self, obs: np.ndarray, deterministic: bool = False, with_logprob: bool = False
+    ):
         """
         Given a single obs, return the action, logp.
         """
@@ -268,16 +262,18 @@ class COptiDICETrainer:
         device (str): The device to use for training (e.g. "cpu" or "cuda").
     """
 
-    def __init__(self,
-                 model: COptiDICE,
-                 env: gym.Env,
-                 logger: WandbLogger = DummyLogger(),
-                 actor_lr: float = 1e-3,
-                 critic_lr: float = 1e-3,
-                 scalar_lr: float = 1e-3,
-                 reward_scale: float = 1.0,
-                 cost_scale: float = 1.0,
-                 device="cpu"):
+    def __init__(
+        self,
+        model: COptiDICE,
+        env: gym.Env,
+        logger: WandbLogger = DummyLogger(),
+        actor_lr: float = 1e-3,
+        critic_lr: float = 1e-3,
+        scalar_lr: float = 1e-3,
+        reward_scale: float = 1.0,
+        cost_scale: float = 1.0,
+        device="cpu"
+    ):
         self.model = model
         self.logger = logger
         self.env = env
@@ -303,7 +299,8 @@ class COptiDICETrainer:
             episode_costs.append(epi_cost)
         self.model.train()
         return np.mean(episode_rets) / self.reward_scale, np.mean(
-            episode_costs) / self.cost_scale, np.mean(episode_lens)
+            episode_costs
+        ) / self.cost_scale, np.mean(episode_lens)
 
     @torch.no_grad()
     def rollout(self):

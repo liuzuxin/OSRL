@@ -1,20 +1,15 @@
-from dataclasses import asdict, dataclass
 from copy import deepcopy
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
-import os
-import uuid
 
 import gymnasium as gym
-import dsrl
-import pyrallis
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
-from fsrl.utils import WandbLogger, DummyLogger
-from osrl.common.net import MLPGaussianPerturbationActor, \
-    EnsembleDoubleQCritic, VAE, LagrangianPIDController
+from fsrl.utils import DummyLogger, WandbLogger
+from tqdm.auto import trange  # noqa
+
+from osrl.common.net import (
+    VAE, EnsembleDoubleQCritic, LagrangianPIDController, MLPGaussianPerturbationActor
+)
 
 
 class BCQL(nn.Module):
@@ -46,25 +41,27 @@ class BCQL(nn.Module):
         device (str): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
     """
 
-    def __init__(self,
-                 state_dim: int,
-                 action_dim: int,
-                 max_action: float,
-                 a_hidden_sizes: list = [128, 128],
-                 c_hidden_sizes: list = [128, 128],
-                 vae_hidden_sizes: int = 64,
-                 sample_action_num: int = 10,
-                 gamma: float = 0.99,
-                 tau: float = 0.005,
-                 phi: float = 0.05,
-                 lmbda: float = 0.75,
-                 beta: float = 0.5,
-                 PID: list = [0.1, 0.003, 0.001],
-                 num_q: int = 1,
-                 num_qc: int = 1,
-                 cost_limit: int = 10,
-                 episode_len: int = 300,
-                 device: str = "cpu"):
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        max_action: float,
+        a_hidden_sizes: list = [128, 128],
+        c_hidden_sizes: list = [128, 128],
+        vae_hidden_sizes: int = 64,
+        sample_action_num: int = 10,
+        gamma: float = 0.99,
+        tau: float = 0.005,
+        phi: float = 0.05,
+        lmbda: float = 0.75,
+        beta: float = 0.5,
+        PID: list = [0.1, 0.003, 0.001],
+        num_q: int = 1,
+        num_qc: int = 1,
+        cost_limit: int = 10,
+        episode_len: int = 300,
+        device: str = "cpu"
+    ):
 
         super().__init__()
         self.state_dim = state_dim
@@ -88,21 +85,28 @@ class BCQL(nn.Module):
         self.device = device
 
         ################ create actor critic model ###############
-        self.actor = MLPGaussianPerturbationActor(self.state_dim, self.action_dim,
-                                                  self.a_hidden_sizes, nn.Tanh, self.phi,
-                                                  self.max_action).to(self.device)
-        self.critic = EnsembleDoubleQCritic(self.state_dim,
-                                            self.action_dim,
-                                            self.c_hidden_sizes,
-                                            nn.ReLU,
-                                            num_q=self.num_q).to(self.device)
-        self.cost_critic = EnsembleDoubleQCritic(self.state_dim,
-                                                 self.action_dim,
-                                                 self.c_hidden_sizes,
-                                                 nn.ReLU,
-                                                 num_q=self.num_qc).to(self.device)
-        self.vae = VAE(self.state_dim, self.action_dim, self.vae_hidden_sizes,
-                       self.latent_dim, self.max_action, self.device).to(self.device)
+        self.actor = MLPGaussianPerturbationActor(
+            self.state_dim, self.action_dim, self.a_hidden_sizes, nn.Tanh, self.phi,
+            self.max_action
+        ).to(self.device)
+        self.critic = EnsembleDoubleQCritic(
+            self.state_dim,
+            self.action_dim,
+            self.c_hidden_sizes,
+            nn.ReLU,
+            num_q=self.num_q
+        ).to(self.device)
+        self.cost_critic = EnsembleDoubleQCritic(
+            self.state_dim,
+            self.action_dim,
+            self.c_hidden_sizes,
+            nn.ReLU,
+            num_q=self.num_qc
+        ).to(self.device)
+        self.vae = VAE(
+            self.state_dim, self.action_dim, self.vae_hidden_sizes, self.latent_dim,
+            self.max_action, self.device
+        ).to(self.device)
 
         self.actor_old = deepcopy(self.actor)
         self.actor_old.eval()
@@ -111,10 +115,11 @@ class BCQL(nn.Module):
         self.cost_critic_old = deepcopy(self.cost_critic)
         self.cost_critic_old.eval()
 
-        self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len) / (
-            1 - self.gamma) / self.episode_len
-        self.controller = LagrangianPIDController(self.KP, self.KI, self.KD,
-                                                  self.qc_thres)
+        self.qc_thres = cost_limit * (1 - self.gamma**self.episode_len
+                                      ) / (1 - self.gamma) / self.episode_len
+        self.controller = LagrangianPIDController(
+            self.KP, self.KI, self.KD, self.qc_thres
+        )
 
     def _soft_update(self, tgt: nn.Module, src: nn.Module, tau: float) -> None:
         """
@@ -140,19 +145,21 @@ class BCQL(nn.Module):
         _, _, q1_list, q2_list = self.critic.predict(observations, actions)
         with torch.no_grad():
             batch_size = next_observations.shape[0]
-            obs_next = torch.repeat_interleave(next_observations, self.sample_action_num,
-                                               0).to(self.device)
+            obs_next = torch.repeat_interleave(
+                next_observations, self.sample_action_num, 0
+            ).to(self.device)
 
             act_targ_next = self.actor_old(obs_next, self.vae.decode(obs_next))
             q1_targ, q2_targ, _, _ = self.critic_old.predict(obs_next, act_targ_next)
 
-            q_targ = self.lmbda * torch.min(
-                q1_targ, q2_targ) + (1. - self.lmbda) * torch.max(q1_targ, q2_targ)
+            q_targ = self.lmbda * torch.min(q1_targ,
+                                            q2_targ) + (1. - self.lmbda
+                                                        ) * torch.max(q1_targ, q2_targ)
             q_targ = q_targ.reshape(batch_size, -1).max(1)[0]
 
             backup = rewards + self.gamma * (1 - done) * q_targ
-        loss_critic = self.critic.loss(backup, q1_list) + self.critic.loss(
-            backup, q2_list)
+        loss_critic = self.critic.loss(backup,
+                                       q1_list) + self.critic.loss(backup, q2_list)
         self.critic_optim.zero_grad()
         loss_critic.backward()
         self.critic_optim.step()
@@ -163,20 +170,24 @@ class BCQL(nn.Module):
         _, _, q1_list, q2_list = self.cost_critic.predict(observations, actions)
         with torch.no_grad():
             batch_size = next_observations.shape[0]
-            obs_next = torch.repeat_interleave(next_observations, self.sample_action_num,
-                                               0).to(self.device)
+            obs_next = torch.repeat_interleave(
+                next_observations, self.sample_action_num, 0
+            ).to(self.device)
 
             act_targ_next = self.actor_old(obs_next, self.vae.decode(obs_next))
             q1_targ, q2_targ, _, _ = self.cost_critic_old.predict(
-                obs_next, act_targ_next)
+                obs_next, act_targ_next
+            )
 
-            q_targ = self.lmbda * torch.min(
-                q1_targ, q2_targ) + (1. - self.lmbda) * torch.max(q1_targ, q2_targ)
+            q_targ = self.lmbda * torch.min(q1_targ,
+                                            q2_targ) + (1. - self.lmbda
+                                                        ) * torch.max(q1_targ, q2_targ)
             q_targ = q_targ.reshape(batch_size, -1).max(1)[0]
 
             backup = costs + self.gamma * q_targ
         loss_cost_critic = self.cost_critic.loss(
-            backup, q1_list) + self.cost_critic.loss(backup, q2_list)
+            backup, q1_list
+        ) + self.cost_critic.loss(backup, q2_list)
         self.cost_critic_optim.zero_grad()
         loss_cost_critic.backward()
         self.cost_critic_optim.step()
@@ -226,8 +237,9 @@ class BCQL(nn.Module):
         """
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optim = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
-        self.cost_critic_optim = torch.optim.Adam(self.cost_critic.parameters(),
-                                                  lr=critic_lr)
+        self.cost_critic_optim = torch.optim.Adam(
+            self.cost_critic.parameters(), lr=critic_lr
+        )
         self.vae_optim = torch.optim.Adam(self.vae.parameters(), lr=vae_lr)
 
     def sync_weight(self):
@@ -265,17 +277,18 @@ class BCQLTrainer:
     """
 
     def __init__(
-            self,
-            model: BCQL,
-            env: gym.Env,
-            logger: WandbLogger = DummyLogger(),
-            # training params
-            actor_lr: float = 1e-4,
-            critic_lr: float = 1e-4,
-            vae_lr: float = 1e-4,
-            reward_scale: float = 1.0,
-            cost_scale: float = 1.0,
-            device="cpu"):
+        self,
+        model: BCQL,
+        env: gym.Env,
+        logger: WandbLogger = DummyLogger(),
+        # training params
+        actor_lr: float = 1e-4,
+        critic_lr: float = 1e-4,
+        vae_lr: float = 1e-4,
+        reward_scale: float = 1.0,
+        cost_scale: float = 1.0,
+        device="cpu"
+    ):
 
         self.model = model
         self.logger = logger
@@ -285,8 +298,9 @@ class BCQLTrainer:
         self.device = device
         self.model.setup_optimizers(actor_lr, critic_lr, vae_lr)
 
-    def train_one_step(self, observations, next_observations, actions, rewards, costs,
-                       done):
+    def train_one_step(
+        self, observations, next_observations, actions, rewards, costs, done
+    ):
         """
         Trains the model by updating the VAE, critic, cost critic, and actor.
         """
@@ -294,12 +308,13 @@ class BCQLTrainer:
         # update VAE
         loss_vae, stats_vae = self.model.vae_loss(observations, actions)
         # update critic
-        loss_critic, stats_critic = self.model.critic_loss(observations,
-                                                           next_observations, actions,
-                                                           rewards, done)
+        loss_critic, stats_critic = self.model.critic_loss(
+            observations, next_observations, actions, rewards, done
+        )
         # update cost critic
         loss_cost_critic, stats_cost_critic = self.model.cost_critic_loss(
-            observations, next_observations, actions, costs, done)
+            observations, next_observations, actions, costs, done
+        )
         # update actor
         loss_actor, stats_actor = self.model.actor_loss(observations)
 
@@ -323,7 +338,8 @@ class BCQLTrainer:
             episode_costs.append(epi_cost)
         self.model.train()
         return np.mean(episode_rets) / self.reward_scale, np.mean(
-            episode_costs) / self.cost_scale, np.mean(episode_lens)
+            episode_costs
+        ) / self.cost_scale, np.mean(episode_lens)
 
     @torch.no_grad()
     def rollout(self):

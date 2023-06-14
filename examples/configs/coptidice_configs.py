@@ -1,5 +1,6 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
+
 from pyrallis import field
 
 
@@ -256,7 +257,7 @@ class COptiDICEEasySparseConfig(COptiDICETrainConfig):
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
     update_steps: int = 200_000
-    
+
 
 @dataclass
 class COptiDICEEasyMeanConfig(COptiDICETrainConfig):
@@ -280,7 +281,7 @@ class COptiDICEMediumSparseConfig(COptiDICETrainConfig):
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
     update_steps: int = 200_000
-    
+
 
 @dataclass
 class COptiDICEMediumMeanConfig(COptiDICETrainConfig):

@@ -1,19 +1,15 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
-from collections import defaultdict
-from dataclasses import asdict, dataclass
+from typing import Optional, Tuple
 
 import gymnasium as gym
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
-from torch.nn import functional as F  # noqa
-from torch import distributions as pyd
+from fsrl.utils import DummyLogger, WandbLogger
 from torch.distributions.beta import Beta
+from torch.nn import functional as F  # noqa
+from tqdm.auto import trange  # noqa
 
-from osrl.common.net import TransformerBlock, mlp, DiagGaussianActor
-from fsrl.utils import WandbLogger, DummyLogger
+from osrl.common.net import DiagGaussianActor, TransformerBlock, mlp
 
 
 class CDT(nn.Module):
@@ -117,15 +113,17 @@ class CDT(nn.Module):
             self.prefix_emb = nn.Linear(1, embedding_dim)
             dt_seq_len += 1
 
-        self.blocks = nn.ModuleList([
-            TransformerBlock(
-                seq_len=dt_seq_len,
-                embedding_dim=embedding_dim,
-                num_heads=num_heads,
-                attention_dropout=attention_dropout,
-                residual_dropout=residual_dropout,
-            ) for _ in range(num_layers)
-        ])
+        self.blocks = nn.ModuleList(
+            [
+                TransformerBlock(
+                    seq_len=dt_seq_len,
+                    embedding_dim=embedding_dim,
+                    num_heads=num_heads,
+                    attention_dropout=attention_dropout,
+                    residual_dropout=residual_dropout,
+                ) for _ in range(num_layers)
+            ]
+        )
 
         action_emb_dim = 2 * embedding_dim if self.cat_cost_feat else embedding_dim
 
@@ -133,13 +131,16 @@ class CDT(nn.Module):
             if action_head_layers >= 2:
                 self.action_head = nn.Sequential(
                     nn.Linear(action_emb_dim, action_emb_dim), nn.GELU(),
-                    DiagGaussianActor(action_emb_dim, action_dim))
+                    DiagGaussianActor(action_emb_dim, action_dim)
+                )
             else:
                 self.action_head = DiagGaussianActor(action_emb_dim, action_dim)
         else:
-            self.action_head = mlp([action_emb_dim] * action_head_layers + [action_dim],
-                                   activation=nn.GELU,
-                                   output_activation=nn.Identity)
+            self.action_head = mlp(
+                [action_emb_dim] * action_head_layers + [action_dim],
+                activation=nn.GELU,
+                output_activation=nn.Identity
+            )
         self.state_pred_head = nn.Linear(embedding_dim, state_dim)
         # a classification problem
         self.cost_pred_head = nn.Linear(embedding_dim, 2)
@@ -168,14 +169,14 @@ class CDT(nn.Module):
             torch.nn.init.ones_(module.weight)
 
     def forward(
-            self,
-            states: torch.Tensor,  # [batch_size, seq_len, state_dim]
-            actions: torch.Tensor,  # [batch_size, seq_len, action_dim]
-            returns_to_go: torch.Tensor,  # [batch_size, seq_len]
-            costs_to_go: torch.Tensor,  # [batch_size, seq_len]
-            time_steps: torch.Tensor,  # [batch_size, seq_len]
-            padding_mask: Optional[torch.Tensor] = None,  # [batch_size, seq_len]
-            episode_cost: torch.Tensor = None,  # [batch_size, ]
+        self,
+        states: torch.Tensor,  # [batch_size, seq_len, state_dim]
+        actions: torch.Tensor,  # [batch_size, seq_len, action_dim]
+        returns_to_go: torch.Tensor,  # [batch_size, seq_len]
+        costs_to_go: torch.Tensor,  # [batch_size, seq_len]
+        time_steps: torch.Tensor,  # [batch_size, seq_len]
+        padding_mask: Optional[torch.Tensor] = None,  # [batch_size, seq_len]
+        episode_cost: torch.Tensor = None,  # [batch_size, ]
     ) -> torch.FloatTensor:
         batch_size, seq_len = states.shape[0], states.shape[1]
         # [batch_size, seq_len, emb_dim]
@@ -200,8 +201,9 @@ class CDT(nn.Module):
 
         # [batch_size, seq_len, 2-4, emb_dim], (c_0 s_0, a_0, c_1, s_1, a_1, ...)
         sequence = torch.stack(seq_list, dim=1).permute(0, 2, 1, 3)
-        sequence = sequence.reshape(batch_size, self.seq_repeat * seq_len,
-                                    self.embedding_dim)
+        sequence = sequence.reshape(
+            batch_size, self.seq_repeat * seq_len, self.embedding_dim
+        )
 
         if padding_mask is not None:
             # [batch_size, seq_len * self.seq_repeat], stack mask identically to fit the sequence
@@ -260,11 +262,13 @@ class CDT(nn.Module):
         )  # predict next action given state, [batch_size, seq_len, action_dim]
         # [batch_size, seq_len, 2]
         cost_preds = self.cost_pred_head(
-            action_feature)  # predict next cost return given state and action
+            action_feature
+        )  # predict next cost return given state and action
         cost_preds = F.log_softmax(cost_preds, dim=-1)
 
         state_preds = self.state_pred_head(
-            action_feature)  # predict next state given state and action
+            action_feature
+        )  # predict next state given state and action
 
         return action_preds, cost_preds, state_preds
 
@@ -293,23 +297,24 @@ class CDTTrainer:
     """
 
     def __init__(
-            self,
-            model: CDT,
-            env: gym.Env,
-            logger: WandbLogger = DummyLogger(),
-            # training params
-            learning_rate: float = 1e-4,
-            weight_decay: float = 1e-4,
-            betas: Tuple[float, ...] = (0.9, 0.999),
-            clip_grad: float = 0.25,
-            lr_warmup_steps: int = 10000,
-            reward_scale: float = 1.0,
-            cost_scale: float = 1.0,
-            loss_cost_weight: float = 0.0,
-            loss_state_weight: float = 0.0,
-            cost_reverse: bool = False,
-            no_entropy: bool = False,
-            device="cpu") -> None:
+        self,
+        model: CDT,
+        env: gym.Env,
+        logger: WandbLogger = DummyLogger(),
+        # training params
+        learning_rate: float = 1e-4,
+        weight_decay: float = 1e-4,
+        betas: Tuple[float, ...] = (0.9, 0.999),
+        clip_grad: float = 0.25,
+        lr_warmup_steps: int = 10000,
+        reward_scale: float = 1.0,
+        cost_scale: float = 1.0,
+        loss_cost_weight: float = 0.0,
+        loss_state_weight: float = 0.0,
+        cost_reverse: bool = False,
+        no_entropy: bool = False,
+        device="cpu"
+    ) -> None:
         self.model = model
         self.logger = logger
         self.env = env
@@ -341,11 +346,15 @@ class CDTTrainer:
             )
         self.max_action = self.model.max_action
 
-        self.beta_dist = Beta(torch.tensor(2, dtype=torch.float, device=self.device),
-                              torch.tensor(5, dtype=torch.float, device=self.device))
+        self.beta_dist = Beta(
+            torch.tensor(2, dtype=torch.float, device=self.device),
+            torch.tensor(5, dtype=torch.float, device=self.device)
+        )
 
-    def train_one_step(self, states, actions, returns, costs_return, time_steps, mask,
-                       episode_cost, costs):
+    def train_one_step(
+        self, states, actions, returns, costs_return, time_steps, mask, episode_cost,
+        costs
+    ):
         # True value indicates that the corresponding key value will be ignored
         padding_mask = ~mask.to(torch.bool)
         action_preds, cost_preds, state_preds = self.model(
@@ -367,10 +376,12 @@ class CDTTrainer:
                 entropy_reg = 0.0
                 entropy_reg_item = 0.0
             act_loss = -(log_likelihood + entropy_reg * entropy)
-            self.logger.store(tab="train",
-                              nll=-log_likelihood.item(),
-                              ent=entropy.item(),
-                              ent_reg=entropy_reg_item)
+            self.logger.store(
+                tab="train",
+                nll=-log_likelihood.item(),
+                ent=entropy.item(),
+                ent_reg=entropy_reg_item
+            )
         else:
             act_loss = F.mse_loss(action_preds, actions.detach(), reduction="none")
             # [batch_size, seq_len, action_dim] * [batch_size, seq_len, 1]
@@ -390,9 +401,9 @@ class CDTTrainer:
         acc = correct / total_num
 
         # [batch_size, seq_len, state_dim]
-        state_loss = F.mse_loss(state_preds[:, :-1],
-                                states[:, 1:].detach(),
-                                reduction="none")
+        state_loss = F.mse_loss(
+            state_preds[:, :-1], states[:, 1:].detach(), reduction="none"
+        )
         state_loss = (state_loss * mask[:, :-1].unsqueeze(-1)).mean()
 
         loss = act_loss + self.cost_weight * cost_loss + self.state_weight * state_loss
@@ -405,8 +416,9 @@ class CDTTrainer:
 
         if self.stochastic:
             self.log_temperature_optimizer.zero_grad()
-            temperature_loss = (self.model.temperature() *
-                                (entropy - self.model.target_entropy).detach())
+            temperature_loss = (
+                self.model.temperature() * (entropy - self.model.target_entropy).detach()
+            )
             temperature_loss.backward()
             self.log_temperature_optimizer.step()
 
@@ -428,14 +440,16 @@ class CDTTrainer:
         self.model.eval()
         episode_rets, episode_costs, episode_lens = [], [], []
         for _ in trange(num_rollouts, desc="Evaluating...", leave=False):
-            epi_ret, epi_len, epi_cost = self.rollout(self.model, self.env,
-                                                      target_return, target_cost)
+            epi_ret, epi_len, epi_cost = self.rollout(
+                self.model, self.env, target_return, target_cost
+            )
             episode_rets.append(epi_ret)
             episode_lens.append(epi_len)
             episode_costs.append(epi_cost)
         self.model.train()
         return np.mean(episode_rets) / self.reward_scale, np.mean(
-            episode_costs) / self.cost_scale, np.mean(episode_lens)
+            episode_costs
+        ) / self.cost_scale, np.mean(episode_lens)
 
     @torch.no_grad()
     def rollout(
@@ -448,27 +462,29 @@ class CDTTrainer:
         """
         Evaluates the performance of the model on a single episode.
         """
-        states = torch.zeros(1,
-                             model.episode_len + 1,
-                             model.state_dim,
-                             dtype=torch.float,
-                             device=self.device)
-        actions = torch.zeros(1,
-                              model.episode_len,
-                              model.action_dim,
-                              dtype=torch.float,
-                              device=self.device)
-        returns = torch.zeros(1,
-                              model.episode_len + 1,
-                              dtype=torch.float,
-                              device=self.device)
-        costs = torch.zeros(1,
-                            model.episode_len + 1,
-                            dtype=torch.float,
-                            device=self.device)
-        time_steps = torch.arange(model.episode_len,
-                                  dtype=torch.long,
-                                  device=self.device)
+        states = torch.zeros(
+            1,
+            model.episode_len + 1,
+            model.state_dim,
+            dtype=torch.float,
+            device=self.device
+        )
+        actions = torch.zeros(
+            1,
+            model.episode_len,
+            model.action_dim,
+            dtype=torch.float,
+            device=self.device
+        )
+        returns = torch.zeros(
+            1, model.episode_len + 1, dtype=torch.float, device=self.device
+        )
+        costs = torch.zeros(
+            1, model.episode_len + 1, dtype=torch.float, device=self.device
+        )
+        time_steps = torch.arange(
+            model.episode_len, dtype=torch.long, device=self.device
+        )
         time_steps = time_steps.view(1, -1)
 
         obs, info = env.reset()
@@ -476,9 +492,9 @@ class CDTTrainer:
         returns[:, 0] = torch.as_tensor(target_return, device=self.device)
         costs[:, 0] = torch.as_tensor(target_cost, device=self.device)
 
-        epi_cost = torch.tensor(np.array([target_cost]),
-                                dtype=torch.float,
-                                device=self.device)
+        epi_cost = torch.tensor(
+            np.array([target_cost]), dtype=torch.float, device=self.device
+        )
 
         # cannot step higher than model episode len, as timestep embeddings will crash
         episode_ret, episode_cost, episode_len = 0.0, 0.0, 0

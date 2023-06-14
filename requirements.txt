@@ -1,0 +1,10 @@
+numpy==1.23.5
+numpy==1.23.4
+OApackage==2.7.6
+pyrallis==0.3.1
+PyYAML==6.0
+PyYAML==6.0
+scipy==1.10.1
+setuptools==65.5.0
+torch==1.13.0
+tqdm==4.64.1

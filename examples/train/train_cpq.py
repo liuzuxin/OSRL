@@ -1,24 +1,24 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
-from dataclasses import asdict, dataclass
 import os
 import uuid
+from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
-import gymnasium as gym  # noqa
 import bullet_safety_gym  # noqa
 import dsrl
+import gymnasium as gym  # noqa
 import numpy as np
 import pyrallis
 import torch
-from torch.utils.data import DataLoader
-from tqdm.auto import trange  # noqa
 from dsrl.infos import DENSITY_CFG
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from fsrl.utils import WandbLogger
+from torch.utils.data import DataLoader
+from tqdm.auto import trange  # noqa
 
-from osrl.common import TransitionDataset
+from examples.configs.cpq_configs import CPQ_DEFAULT_CONFIG, CPQTrainConfig
 from osrl.algorithms import CPQ, CPQTrainer
+from osrl.common import TransitionDataset
 from osrl.common.exp_util import auto_name, seed_all
-from examples.configs.cpq_configs import CPQTrainConfig, CPQ_DEFAULT_CONFIG
 
 
 @pyrallis.wrap()
@@ -49,14 +49,21 @@ def train(args: CPQTrainConfig):
 
     cbins, rbins, max_npb, min_npb = None, None, None, None
     if args.density != 1.0:
-        density_cfg = DENSITY_CFG[args.task+"_density"+str(args.density)]
+        density_cfg = DENSITY_CFG[args.task + "_density" + str(args.density)]
         cbins = density_cfg["cbins"]
         rbins = density_cfg["rbins"]
         max_npb = density_cfg["max_npb"]
         min_npb = density_cfg["min_npb"]
-    data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
-                                args.inpaint_ranges, args.epsilon, args.density,
-                                cbins=cbins, rbins=rbins, max_npb=max_npb, min_npb=min_npb)
+    data = env.pre_process_data(data,
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges,
+                                args.epsilon,
+                                args.density,
+                                cbins=cbins,
+                                rbins=rbins,
+                                max_npb=max_npb,
+                                min_npb=min_npb)
 
     # wrapper
     env = wrap_env(

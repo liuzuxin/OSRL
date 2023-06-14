@@ -1,16 +1,11 @@
-from dataclasses import asdict, dataclass
-from copy import deepcopy
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
-
 import gymnasium as gym
-import dsrl
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from fsrl.utils import WandbLogger, DummyLogger
+from fsrl.utils import DummyLogger, WandbLogger
+from tqdm.auto import trange  # noqa
+
 from osrl.common.net import MLPActor
 
 
@@ -28,13 +23,15 @@ class BC(nn.Module):
         device (str, optional): Device to run the model on (e.g. 'cpu' or 'cuda:0'). 
     """
 
-    def __init__(self,
-                 state_dim: int,
-                 action_dim: int,
-                 max_action: float,
-                 a_hidden_sizes: list = [128, 128],
-                 episode_len: int = 300,
-                 device: str = "cpu"):
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        max_action: float,
+        a_hidden_sizes: list = [128, 128],
+        episode_len: int = 300,
+        device: str = "cpu"
+    ):
 
         super().__init__()
         self.state_dim = state_dim
@@ -44,8 +41,10 @@ class BC(nn.Module):
         self.episode_len = episode_len
         self.device = device
 
-        self.actor = MLPActor(self.state_dim, self.action_dim, self.a_hidden_sizes,
-                              nn.ReLU, self.max_action).to(self.device)
+        self.actor = MLPActor(
+            self.state_dim, self.action_dim, self.a_hidden_sizes, nn.ReLU,
+            self.max_action
+        ).to(self.device)
 
     def actor_loss(self, observations, actions):
         pred_actions = self.actor(observations)
@@ -84,15 +83,16 @@ class BCTrainer:
     """
 
     def __init__(
-            self,
-            model: BC,
-            env: gym.Env,
-            logger: WandbLogger = DummyLogger(),
-            # training params
-            actor_lr: float = 1e-4,
-            bc_mode: str = "all",
-            cost_limit: int = 10,
-            device="cpu"):
+        self,
+        model: BC,
+        env: gym.Env,
+        logger: WandbLogger = DummyLogger(),
+        # training params
+        actor_lr: float = 1e-4,
+        bc_mode: str = "all",
+        cost_limit: int = 10,
+        device="cpu"
+    ):
 
         self.model = model
         self.logger = logger

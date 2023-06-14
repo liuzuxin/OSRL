@@ -1,16 +1,16 @@
-from osrl.common.exp_util import ExperimentGrid
+from easy_runner import EasyRunner
 
 if __name__ == "__main__":
 
     exp_name = "benchmark"
-    runner = ExperimentGrid(log_name=exp_name)
+    runner = EasyRunner(log_name=exp_name)
 
     task = [
         # bullet safety gym envs
-        "OfflineAntCircle-v0", 
-        "OfflineAntRun-v0", 
+        "OfflineAntCircle-v0",
+        "OfflineAntRun-v0",
         "OfflineCarCircle-v0",
-        "OfflineDroneCircle-v0", 
+        "OfflineDroneCircle-v0",
         "OfflineDroneRun-v0",
         "OfflineBallCircle-v0",
         "OfflineBallRun-v0",
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     template = "nohup python examples/train/{}.py --task {} --device cpu"
 
     train_instructions = runner.compose(template, [policy, task])
-    runner.run(train_instructions, max_parallel=15)
+    runner.start(train_instructions, max_parallel=15)

@@ -1,15 +1,16 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
-from collections import defaultdict
-from dataclasses import asdict, dataclass
-import random
 import copy
 import heapq
+import random
+from collections import Counter, defaultdict
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import oapackage
-from collections import Counter
+
+try:
+    import oapackage
+except ImportError:
+    print("OApackage is not installed, can not use CDT.")
 from scipy.optimize import minimize
-from random import sample
 from torch.nn import functional as F  # noqa
 from torch.utils.data import IterableDataset
 from tqdm.auto import trange  # noqa
@@ -50,19 +51,19 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
         dict: A dictionary containing the processed dataset.
 
     """
-    
+
     # get the indices of the transitions after terminal states or timeouts
     done_idx = np.where((dataset["terminals"] == 1) | (dataset["timeouts"] == 1))[0]
-    
+
     n_transitions = dataset["observations"].shape[0]
-    selected_transition = np.zeros((n_transitions,), dtype=int)
+    selected_transition = np.zeros((n_transitions, ), dtype=int)
     dataset["cost_returns"] = np.zeros_like(dataset["costs"])
-    
+
     for i in range(done_idx.shape[0]):
-        
-        start = 0 if i == 0 else done_idx[i-1] + 1
+
+        start = 0 if i == 0 else done_idx[i - 1] + 1
         end = done_idx[i] + 1
-        
+
         # compute the cost and reward returns for the segment
         cost_returns = discounted_cumsum(dataset["costs"][start:end], gamma=gamma)
         reward_returns = discounted_cumsum(dataset["rewards"][start:end], gamma=gamma)
@@ -89,9 +90,13 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
     for k, v in dataset.items():
         dataset[k] = v[selected_transition == 1]
     if bc_mode == "multi-task":
-        dataset["observations"] = np.hstack((dataset["observations"], dataset["cost_returns"].reshape(-1, 1)))
+        dataset["observations"] = np.hstack(
+            (dataset["observations"], dataset["cost_returns"].reshape(-1, 1))
+        )
 
-    print(f"original size = {n_transitions}, cost limit = {cost_limit}, filtered size = {np.sum(selected_transition == 1)}")
+    print(
+        f"original size = {n_transitions}, cost limit = {cost_limit}, filtered size = {np.sum(selected_transition == 1)}"
+    )
 
 
 def process_sequence_dataset(dataset: dict, cost_reverse: bool = False):
@@ -126,7 +131,9 @@ def process_sequence_dataset(dataset: dict, cost_reverse: bool = False):
             episode_data = {k: np.array(v, dtype=np.float32) for k, v in data_.items()}
             # return-to-go if gamma=1.0, just discounted returns else
             episode_data["returns"] = discounted_cumsum(episode_data["rewards"], gamma=1)
-            episode_data["cost_returns"] = discounted_cumsum(episode_data["costs"], gamma=1)
+            episode_data["cost_returns"] = discounted_cumsum(
+                episode_data["costs"], gamma=1
+            )
             traj.append(episode_data)
             traj_len.append(episode_step)
             # reset trajectory buffer
@@ -142,11 +149,12 @@ def process_sequence_dataset(dataset: dict, cost_reverse: bool = False):
     return traj, info
 
 
-def get_nearest_point(original_data: np.ndarray,
-                      sampled_data: np.ndarray,
-                      max_rew_decrease: float = 1,
-                      beta: float = 1):
-    
+def get_nearest_point(
+    original_data: np.ndarray,
+    sampled_data: np.ndarray,
+    max_rew_decrease: float = 1,
+    beta: float = 1
+):
     """
     Given two arrays of data, finds the indices of the original data that are closest
     to each sample in the sampled data, and returns a list of those indices.
@@ -184,17 +192,32 @@ def get_nearest_point(original_data: np.ndarray,
             mask = original_data[:, 0] <= p[0]
 
             # the associated data should be: 1) smaller than the current cost 2) greater than certain reward
-            mask = np.logical_and(original_data[:, 0] <= p[0], original_data[:, 1] >= p[1] - max_rew_decrease)
+            mask = np.logical_and(
+                original_data[:, 0] <= p[0], original_data[:, 1]
+                >= p[1] - max_rew_decrease
+            )
             delta = original_data[mask, :] - p
             dist = np.hypot(delta[:, 0], delta[:, 1])
             dist = dist_fun(dist)
-            sample_idx = np.random.choice(dist.shape[0], size=num - 1, p=dist / np.sum(dist))
+            sample_idx = np.random.choice(
+                dist.shape[0], size=num - 1, p=dist / np.sum(dist)
+            )
             new_idxes.extend(original_idx[mask][sample_idx.tolist()])
     return new_idxes
 
 
-def grid_filter(x, y, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf, 
-                xbins=10, ybins=10, max_num_per_bin=10, min_num_per_bin=1):
+def grid_filter(
+    x,
+    y,
+    xmin=-np.inf,
+    xmax=np.inf,
+    ymin=-np.inf,
+    ymax=np.inf,
+    xbins=10,
+    ybins=10,
+    max_num_per_bin=10,
+    min_num_per_bin=1
+):
     xmin, xmax = max(min(x), xmin), min(max(x), xmax)
     ymin, ymax = max(min(y), ymin), min(max(y), ymax)
     xbin_step = (xmax - xmin) / xbins
@@ -220,27 +243,31 @@ def grid_filter(x, y, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf,
     return indices
 
 
-def filter_trajectory(cost,
-                      rew,
-                      traj,
-                      cost_min=-np.inf,
-                      cost_max=np.inf,
-                      rew_min=-np.inf,
-                      rew_max=np.inf,
-                      cost_bins=60,
-                      rew_bins=50,
-                      max_num_per_bin=10,
-                      min_num_per_bin=1):
-    indices = grid_filter(cost,
-                          rew,
-                          cost_min,
-                          cost_max,
-                          rew_min,
-                          rew_max,
-                          xbins=cost_bins,
-                          ybins=rew_bins,
-                          max_num_per_bin=max_num_per_bin,
-                          min_num_per_bin=min_num_per_bin)
+def filter_trajectory(
+    cost,
+    rew,
+    traj,
+    cost_min=-np.inf,
+    cost_max=np.inf,
+    rew_min=-np.inf,
+    rew_max=np.inf,
+    cost_bins=60,
+    rew_bins=50,
+    max_num_per_bin=10,
+    min_num_per_bin=1
+):
+    indices = grid_filter(
+        cost,
+        rew,
+        cost_min,
+        cost_max,
+        rew_min,
+        rew_max,
+        xbins=cost_bins,
+        ybins=rew_bins,
+        max_num_per_bin=max_num_per_bin,
+        min_num_per_bin=min_num_per_bin
+    )
     cost2, rew2, traj2 = [], [], []
     for i in indices:
         cost2.append(cost[i])
@@ -249,13 +276,15 @@ def filter_trajectory(cost,
     return cost2, rew2, traj2, indices
 
 
-def augmentation(trajs: list,
-                 deg: int = 3,
-                 max_rew_decrease: float = 1,
-                 beta: float = 1,
-                 augment_percent: float = 0.3,
-                 max_reward: float = 1000.0,
-                 min_reward: float = 0.0):
+def augmentation(
+    trajs: list,
+    deg: int = 3,
+    max_rew_decrease: float = 1,
+    beta: float = 1,
+    augment_percent: float = 0.3,
+    max_reward: float = 1000.0,
+    min_reward: float = 0.0
+):
     """
     Applies data augmentation to a list of trajectories, 
     returning the augmented trajectories along with their indices 
@@ -283,19 +312,25 @@ def augmentation(trajs: list,
         cost_ret.append(c)
     rew_ret = np.array(rew_ret, dtype=np.float64)
     cost_ret = np.array(cost_ret, dtype=np.float64)
-    
+
     # grid filer to filter outliers
     cmin, cmax = np.min(cost_ret), np.max(cost_ret)
     rmin, rmax = np.min(rew_ret), np.max(rew_ret)
     cbins, rbins = 10, 50
     max_npb, min_npb = 10, 2
     cost_ret, rew_ret, trajs, indices = filter_trajectory(
-                cost_ret, rew_ret, trajs,
-                cost_min=cmin, cost_max=cmax,
-                rew_min=rmin, rew_max=rmax,
-                cost_bins=cbins, rew_bins=rbins,
-                max_num_per_bin=max_npb,
-                min_num_per_bin=min_npb)
+        cost_ret,
+        rew_ret,
+        trajs,
+        cost_min=cmin,
+        cost_max=cmax,
+        rew_min=rmin,
+        rew_max=rmax,
+        cost_bins=cbins,
+        rew_bins=rbins,
+        max_num_per_bin=max_npb,
+        min_num_per_bin=min_npb
+    )
     print(f"after filter {len(trajs)}")
     rew_ret = np.array(rew_ret, dtype=np.float64)
     cost_ret = np.array(cost_ret, dtype=np.float64)
@@ -320,7 +355,9 @@ def augmentation(trajs: list,
     max_reward = max_reward * np.ones(pf_rew_ret.shape)
     min_reward = min_reward * np.ones(pf_rew_ret.shape)
     # sample the rewards that are above the pf curve and within the max_reward
-    sampled_rew_ret = np.random.uniform(low=pf_rew_ret + min_reward, high=max_reward, size=sample_num)
+    sampled_rew_ret = np.random.uniform(
+        low=pf_rew_ret + min_reward, high=max_reward, size=sample_num
+    )
 
     # associate each sampled (cost, reward) pair with a trajectory index
     original_data = np.hstack([cost_ret[:, None], rew_ret[:, None]])
@@ -438,7 +475,9 @@ def compute_start_index_sample_prob(dataset, prob=0.4):
 
 
 # some utils functionalities specific for Decision Transformer
-def pad_along_axis(arr: np.ndarray, pad_to: int, axis: int = 0, fill_value: float = 0.0) -> np.ndarray:
+def pad_along_axis(
+    arr: np.ndarray, pad_to: int, axis: int = 0, fill_value: float = 0.0
+) -> np.ndarray:
     pad_size = pad_to - arr.shape[axis]
     if pad_size <= 0:
         return arr
@@ -494,15 +533,17 @@ def select_optimal_trajectory(trajs, rmin=0, cost_bins=60, max_num_per_bin=1):
     return traj2
 
 
-def random_augmentation(trajs: list,
-                        augment_percent: float = 0.3,
-                        aug_rmin: float = 0,
-                        aug_rmax: float = 600,
-                        aug_cmin: float = 5,
-                        aug_cmax: float = 50,
-                        cgap: float = 5,
-                        rstd: float = 1,
-                        cstd: float = 0.25):
+def random_augmentation(
+    trajs: list,
+    augment_percent: float = 0.3,
+    aug_rmin: float = 0,
+    aug_rmax: float = 600,
+    aug_cmin: float = 5,
+    aug_cmax: float = 50,
+    cgap: float = 5,
+    rstd: float = 1,
+    cstd: float = 0.25
+):
     """
     Augments a list of trajectories with random noise.
     
@@ -538,7 +579,9 @@ def random_augmentation(trajs: list,
     cmin = np.min(cost_ret)
 
     num = int(augment_percent * cost_ret.shape[0])
-    sampled_cr = np.random.uniform(low=(aug_cmin, aug_rmin), high=(aug_cmax, aug_rmax), size=(num, 2))
+    sampled_cr = np.random.uniform(
+        low=(aug_cmin, aug_rmin), high=(aug_cmax, aug_rmax), size=(num, 2)
+    )
 
     idxes = []
     original_data = np.hstack([cost_ret[:, None], rew_ret[:, None]])
@@ -560,8 +603,12 @@ def random_augmentation(trajs: list,
         target_cost_ret, target_rew_ret = target[0], target[1]
         associated_traj = copy.deepcopy(trajs[i])
         cost_ret, rew_ret = associated_traj["cost_returns"], associated_traj["returns"]
-        cost_ret += target_cost_ret - cost_ret[0] + np.random.normal(loc=0, scale=cstd, size=cost_ret.shape)
-        rew_ret += target_rew_ret - rew_ret[0] + np.random.normal(loc=0, scale=rstd, size=rew_ret.shape)
+        cost_ret += target_cost_ret - cost_ret[0] + np.random.normal(
+            loc=0, scale=cstd, size=cost_ret.shape
+        )
+        rew_ret += target_rew_ret - rew_ret[0] + np.random.normal(
+            loc=0, scale=rstd, size=rew_ret.shape
+        )
         aug_trajs.append(associated_traj)
     return idxes, aug_trajs
 
@@ -643,7 +690,9 @@ class SequenceDataset(IterableDataset):
             print("*" * 100)
             print("Using pareto frontier data points only!!!!!")
             print("*" * 100)
-            self.dataset = select_optimal_trajectory(self.original_data, rmin, cost_bins, npb)
+            self.dataset = select_optimal_trajectory(
+                self.original_data, rmin, cost_bins, npb
+            )
         elif random_aug > 0:
             self.idx, self.aug_data = random_augmentation(
                 self.original_data,
@@ -658,8 +707,10 @@ class SequenceDataset(IterableDataset):
             )
         elif augment_percent > 0:
             # sampled data and the index of its "nearest" point in the dataset
-            self.idx, self.aug_data, self.pareto_frontier, self.indices = augmentation(self.original_data, deg, max_rew_decrease,
-                                                                         beta, augment_percent, max_reward, min_reward)
+            self.idx, self.aug_data, self.pareto_frontier, self.indices = augmentation(
+                self.original_data, deg, max_rew_decrease, beta, augment_percent,
+                max_reward, min_reward
+            )
         self.dataset = self.original_data + self.aug_data
         print(
             f"original data: {len(self.original_data)}, augment data: {len(self.aug_data)}, total: {len(self.dataset)}"
@@ -674,7 +725,9 @@ class SequenceDataset(IterableDataset):
 
         # compute every trajectories start index sampling prob:
         if start_sampling:
-            self.start_idx_sample_prob = compute_start_index_sample_prob(dataset=self.dataset, prob=prob)
+            self.start_idx_sample_prob = compute_start_index_sample_prob(
+                dataset=self.dataset, prob=prob
+            )
 
     def compute_pareto_return(self, cost):
         return self.pareto_frontier(cost)
@@ -695,7 +748,10 @@ class SequenceDataset(IterableDataset):
         returns = returns * self.reward_scale
         cost_returns = cost_returns * self.cost_scale
         # pad up to seq_len if needed
-        mask = np.hstack([np.ones(states.shape[0]), np.zeros(self.seq_len - states.shape[0])])
+        mask = np.hstack(
+            [np.ones(states.shape[0]),
+             np.zeros(self.seq_len - states.shape[0])]
+        )
         if states.shape[0] < self.seq_len:
             states = pad_along_axis(states, pad_to=self.seq_len)
             actions = pad_along_axis(actions, pad_to=self.seq_len)
@@ -710,13 +766,17 @@ class SequenceDataset(IterableDataset):
             traj_idx = np.random.choice(len(self.dataset), p=self.sample_prob)
             # compute start index sampling prob
             if self.start_sampling:
-                start_idx = np.random.choice(self.dataset[traj_idx]["rewards"].shape[0],
-                                             p=self.start_idx_sample_prob[traj_idx])
+                start_idx = np.random.choice(
+                    self.dataset[traj_idx]["rewards"].shape[0],
+                    p=self.start_idx_sample_prob[traj_idx]
+                )
             else:
-                start_idx = random.randint(0, self.dataset[traj_idx]["rewards"].shape[0] - 1)
+                start_idx = random.randint(
+                    0, self.dataset[traj_idx]["rewards"].shape[0] - 1
+                )
             yield self.__prepare_sample(traj_idx, start_idx)
-            
-            
+
+
 class TransitionDataset(IterableDataset):
     """
     A dataset of transitions (state, action, reward, next state) used for training RL agents.
@@ -729,19 +789,24 @@ class TransitionDataset(IterableDataset):
             corresponds to the initial state of an episode.
 
     """
-    def __init__(self,
-                 dataset: dict,
-                 reward_scale: float = 1.0,
-                 cost_scale: float = 1.0,
-                 state_init: bool = False):
+
+    def __init__(
+        self,
+        dataset: dict,
+        reward_scale: float = 1.0,
+        cost_scale: float = 1.0,
+        state_init: bool = False
+    ):
         self.dataset = dataset
         self.reward_scale = reward_scale
         self.cost_scale = cost_scale
         self.sample_prob = None
         self.state_init = state_init
         self.dataset_size = self.dataset["observations"].shape[0]
-        
-        self.dataset["done"] = np.logical_or(self.dataset["terminals"], self.dataset["timeouts"]).astype(np.float32)
+
+        self.dataset["done"] = np.logical_or(
+            self.dataset["terminals"], self.dataset["timeouts"]
+        ).astype(np.float32)
         if self.state_init:
             self.dataset["is_init"] = self.dataset["done"].copy()
             self.dataset["is_init"][1:] = self.dataset["is_init"][:-1]
