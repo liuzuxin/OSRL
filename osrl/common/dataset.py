@@ -235,7 +235,7 @@ def grid_filter(
     for v in bin_hashmap.values():
         if len(v) > max_num_per_bin:
             # random sample max_num_per_bin indices
-            indices += sample(v, max_num_per_bin)
+            indices += random.sample(v, max_num_per_bin)
         elif len(v) <= min_num_per_bin:
             continue
         else:

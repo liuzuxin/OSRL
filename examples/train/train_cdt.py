@@ -32,6 +32,8 @@ def train(args: CDTTrainConfig):
     default_cfg = asdict(CDT_DEFAULT_CONFIG[args.task]())
     if args.name is None:
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
+    if args.group is None:
+        args.group = args.task + "-cost-" + str(int(args.cost_limit))
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
     logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
