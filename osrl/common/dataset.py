@@ -56,36 +56,74 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
     done_idx = np.where((dataset["terminals"] == 1) | (dataset["timeouts"] == 1))[0]
 
     n_transitions = dataset["observations"].shape[0]
-    selected_transition = np.zeros((n_transitions, ), dtype=int)
     dataset["cost_returns"] = np.zeros_like(dataset["costs"])
+    dataset["rew_returns"] = np.zeros_like(dataset["rewards"])
+    cost_ret, rew_ret = [], []
+    pareto_frontier, pf_mask = None, None
 
+    # compute episode returns
     for i in range(done_idx.shape[0]):
-
         start = 0 if i == 0 else done_idx[i - 1] + 1
         end = done_idx[i] + 1
-
         # compute the cost and reward returns for the segment
         cost_returns = discounted_cumsum(dataset["costs"][start:end], gamma=gamma)
         reward_returns = discounted_cumsum(dataset["rewards"][start:end], gamma=gamma)
         dataset["cost_returns"][start:end] = cost_returns[0]
+        dataset["rew_returns"][start:end] = reward_returns[0]
+        cost_ret.append(cost_returns[0])
+        rew_ret.append(reward_returns[0])
 
-        # select the transitions for behavior cloning based on the mode
-        if bc_mode == "all" or bc_mode == "multi-task":
-            selected_transition[start:end] = 1
-        elif bc_mode == "safe":
-            # safe trajectories
-            if cost_returns[0] <= cost_limit:
-                selected_transition[start:end] = 1
-        elif bc_mode == "risky":
-            # high cost trajectories
-            if cost_returns[0] >= 2 * cost_limit:
-                selected_transition[start:end] = 1
-        elif bc_mode == "boundary":
-            # trajectories that are near the cost limit
-            if 0.5 * cost_limit < cost_returns[0] and cost_returns[0] <= 1.5 * cost_limit:
-                selected_transition[start:end] = 1
-        else:
-            raise NotImplementedError
+    # compute Pareto Frontier
+    if bc_mode == "frontier":
+        cost_ret = np.array(cost_ret, dtype=np.float64)
+        rew_ret = np.array(rew_ret, dtype=np.float64)
+        rmax, rmin = np.max(rew_ret), np.min(rew_ret)
+
+        pareto = oapackage.ParetoDoubleLong()
+        for i in range(rew_ret.shape[0]):
+            w = oapackage.doubleVector((-cost_ret[i], rew_ret[i]))
+            pareto.addvalue(w, i)
+        pareto.show(verbose=1)
+        pareto_idx = list(pareto.allindices())
+        cost_ret_pareto = cost_ret[pareto_idx]
+        rew_ret_pareto = rew_ret[pareto_idx]
+
+        for deg in [0, 1, 2]:
+            pareto_frontier = np.poly1d(np.polyfit(cost_ret_pareto, rew_ret_pareto, deg=deg))
+            pf_rew_ret = pareto_frontier(cost_ret_pareto)
+            ss_total = np.sum((rew_ret_pareto - np.mean(rew_ret_pareto))**2)
+            ss_residual = np.sum((rew_ret_pareto - pf_rew_ret)**2)
+            r_squared = 1 - (ss_residual / ss_total)
+            if r_squared >= 0.9:
+                break
+
+        pf_rew_ret = pareto_frontier(dataset["cost_returns"])
+        pf_mask = np.logical_and(
+            pf_rew_ret - (rmax - rmin)/5 <= dataset["rew_returns"],
+            dataset["rew_returns"] <= pf_rew_ret + (rmax - rmin)/5
+        )
+
+    # select the transitions for behavior cloning based on the mode
+    selected_transition = np.zeros((n_transitions, ), dtype=int)
+    if bc_mode == "all" or bc_mode == "multi-task":
+        selected_transition = np.ones((n_transitions, ), dtype=int)
+    elif bc_mode == "safe":
+        # safe trajectories
+        selected_transition[dataset["cost_returns"] <= cost_limit] = 1
+    elif bc_mode == "risky":
+        # high cost trajectories
+        selected_transition[dataset["cost_returns"] >= 2 * cost_limit] = 1
+    elif bc_mode == "boundary":
+        # trajectories that are near the cost limit
+        mask = np.logical_and(
+            0.5 * cost_limit < dataset["cost_returns"],
+            dataset["cost_returns"] <= 1.5 * cost_limit
+        )
+        selected_transition[mask] = 1
+    elif bc_mode == "frontier":
+        selected_transition[pf_mask] = 1
+    else:
+        raise NotImplementedError
 
     for k, v in dataset.items():
         dataset[k] = v[selected_transition == 1]
