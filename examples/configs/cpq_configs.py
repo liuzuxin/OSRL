@@ -6,7 +6,7 @@ from pyrallis import field
 @dataclass
 class CPQTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines-new"
+    project: str = "OSRL-baselines"
     group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "CPQ"
