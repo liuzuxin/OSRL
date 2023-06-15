@@ -114,14 +114,12 @@ DEFAULT_KEY_ABBRE = {
 }
 
 
-def auto_name(
-    default_cfg: dict,
-    current_cfg: dict,
-    prefix: str = "",
-    suffix: str = "",
-    skip_keys: list = DEFAULT_SKIP_KEY,
-    key_abbre: dict = DEFAULT_KEY_ABBRE
-) -> str:
+def auto_name(default_cfg: dict,
+              current_cfg: dict,
+              prefix: str = "",
+              suffix: str = "",
+              skip_keys: list = DEFAULT_SKIP_KEY,
+              key_abbre: dict = DEFAULT_KEY_ABBRE) -> str:
     '''
     Automatic generate the experiment name by comparing the current config with the default one.
 
