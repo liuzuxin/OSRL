@@ -1,12 +1,13 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
+
 from pyrallis import field
 
 
 @dataclass
 class BEARLTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines-new"
+    project: str = "OSRL-baselines"
     group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "BEARL"
@@ -16,7 +17,7 @@ class BEARLTrainConfig:
     # dataset params
     outliers_percent: float = None
     noise_scale: float = None
-    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    inpaint_ranges: Tuple[Tuple[float, float, float, float], ...] = None
     epsilon: float = None
     density: float = 1.0
     # training params
@@ -48,7 +49,7 @@ class BEARLTrainConfig:
     target_mmd_thresh: float = 0.05
     num_samples_mmd_match: int = 10
     start_update_policy_step: int = 0
-    kernel: str = "gaussian" # or "laplacian"
+    kernel: str = "gaussian"  # or "laplacian"
     num_q: int = 2
     num_qc: int = 2
     PID: List[float] = field(default=[0.1, 0.003, 0.001], is_mutable=True)
@@ -95,6 +96,20 @@ class BEARLAntCircleConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
+
+
+@dataclass
+class BEARLBallRunConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class BEARLBallCircleConfig(BEARLTrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
 
 
 @dataclass
@@ -208,11 +223,13 @@ class BEARLPointPush2Config(BEARLTrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLAntVelocityConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineAntVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class BEARLHalfCheetahVelocityConfig(BEARLTrainConfig):
@@ -220,11 +237,13 @@ class BEARLHalfCheetahVelocityConfig(BEARLTrainConfig):
     task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLHopperVelocityConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineHopperVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class BEARLSwimmerVelocityConfig(BEARLTrainConfig):
@@ -232,65 +251,84 @@ class BEARLSwimmerVelocityConfig(BEARLTrainConfig):
     task: str = "OfflineSwimmerVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLWalker2dVelocityConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineWalker2dVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BEARLEasySparseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLEasyMeanConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLEasyDenseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easydense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLMediumSparseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLMediumMeanConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediummean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLMediumDenseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumdense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLHardSparseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLHardMeanConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BEARLHardDenseConfig(BEARLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 BEARL_DEFAULT_CONFIG = {
@@ -301,6 +339,8 @@ BEARL_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": BEARLDroneCircleConfig,
     "OfflineCarRun-v0": BEARLCarRunConfig,
     "OfflineAntCircle-v0": BEARLAntCircleConfig,
+    "OfflineBallCircle-v0": BEARLBallCircleConfig,
+    "OfflineBallRun-v0": BEARLBallRunConfig,
     # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": BEARLCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BEARLCarButton2Config,

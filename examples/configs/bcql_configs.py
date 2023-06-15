@@ -1,12 +1,13 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
+
 from pyrallis import field
 
 
 @dataclass
 class BCQLTrainConfig:
     # wandb params
-    project: str = "OSRL-baselines-new"
+    project: str = "OSRL-baselines"
     group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "BCQL"
@@ -16,7 +17,7 @@ class BCQLTrainConfig:
     # dataset params
     outliers_percent: float = None
     noise_scale: float = None
-    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    inpaint_ranges: Tuple[Tuple[float, float, float, float], ...] = None
     epsilon: float = None
     density: float = 1.0
     # training params
@@ -36,7 +37,7 @@ class BCQLTrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 300_000
+    update_steps: int = 100_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -91,6 +92,20 @@ class BCQLAntCircleConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
+
+
+@dataclass
+class BCQLBallRunConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class BCQLBallCircleConfig(BCQLTrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
 
 
 @dataclass
@@ -204,11 +219,13 @@ class BCQLPointPush2Config(BCQLTrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+
 @dataclass
 class BCQLAntVelocityConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineAntVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class BCQLHalfCheetahVelocityConfig(BCQLTrainConfig):
@@ -216,11 +233,13 @@ class BCQLHalfCheetahVelocityConfig(BCQLTrainConfig):
     task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BCQLHopperVelocityConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineHopperVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class BCQLSwimmerVelocityConfig(BCQLTrainConfig):
@@ -228,65 +247,84 @@ class BCQLSwimmerVelocityConfig(BCQLTrainConfig):
     task: str = "OfflineSwimmerVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BCQLWalker2dVelocityConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineWalker2dVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class BCQLEasySparseConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLEasyMeanConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLEasyDenseConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-easydense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLMediumSparseConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLMediumMeanConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediummean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLMediumDenseConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumdense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLHardSparseConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLHardMeanConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class BCQLHardDenseConfig(BCQLTrainConfig):
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 BCQL_DEFAULT_CONFIG = {
@@ -297,6 +335,8 @@ BCQL_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": BCQLDroneCircleConfig,
     "OfflineCarRun-v0": BCQLCarRunConfig,
     "OfflineAntCircle-v0": BCQLAntCircleConfig,
+    "OfflineBallCircle-v0": BCQLBallCircleConfig,
+    "OfflineBallRun-v0": BCQLBallRunConfig,
     # safety_gymnasium: car
     "OfflineCarButton1Gymnasium-v0": BCQLCarButton1Config,
     "OfflineCarButton2Gymnasium-v0": BCQLCarButton2Config,

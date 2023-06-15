@@ -1,23 +1,24 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
-from dataclasses import asdict, dataclass
 import os
 import uuid
+from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
-import gymnasium as gym  # noqa
 import bullet_safety_gym  # noqa
 import dsrl
+import gymnasium as gym  # noqa
 import numpy as np
 import pyrallis
 import torch
-from torch.utils.data import DataLoader
-from tqdm.auto import trange  # noqa
+from dsrl.infos import DENSITY_CFG
 from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
 from fsrl.utils import WandbLogger
+from torch.utils.data import DataLoader
+from tqdm.auto import trange  # noqa
 
-from osrl.common import SequenceDataset
+from examples.configs.cdt_configs import CDT_DEFAULT_CONFIG, CDTTrainConfig
 from osrl.algorithms import CDT, CDTTrainer
-from fsrl.utils.exp_util import auto_name, seed_all
-from examples.configs.cdt_configs import CDTTrainConfig, CDT_DEFAULT_CONFIG
+from osrl.common import SequenceDataset
+from osrl.common.exp_util import auto_name, seed_all
 
 
 @pyrallis.wrap()
@@ -31,6 +32,8 @@ def train(args: CDTTrainConfig):
     default_cfg = asdict(CDT_DEFAULT_CONFIG[args.task]())
     if args.name is None:
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
+    if args.group is None:
+        args.group = args.task + "-cost-" + str(int(args.cost_limit))
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
     logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
@@ -43,8 +46,24 @@ def train(args: CDTTrainConfig):
     # pre-process offline dataset
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
-    data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
-                                args.inpaint_ranges, args.epsilon)
+
+    cbins, rbins, max_npb, min_npb = None, None, None, None
+    if args.density != 1.0:
+        density_cfg = DENSITY_CFG[args.task + "_density" + str(args.density)]
+        cbins = density_cfg["cbins"]
+        rbins = density_cfg["rbins"]
+        max_npb = density_cfg["max_npb"]
+        min_npb = density_cfg["min_npb"]
+    data = env.pre_process_data(data,
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges,
+                                args.epsilon,
+                                args.density,
+                                cbins=cbins,
+                                rbins=rbins,
+                                max_npb=max_npb,
+                                min_npb=min_npb)
 
     # wrapper
     env = wrap_env(

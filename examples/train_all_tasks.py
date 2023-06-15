@@ -1,21 +1,60 @@
-from fsrl.utils.exp_util import ExperimentGrid
+from easy_runner import EasyRunner
 
 if __name__ == "__main__":
 
     exp_name = "benchmark"
-    runner = ExperimentGrid(log_name=exp_name)
+    runner = EasyRunner(log_name=exp_name)
 
     task = [
-        "offline-AntCircle-v0", "offline-AntRun-v0", "offline-CarCircle-v0",
-        "offline-DroneCircle-v0", "offline-DroneRun-v0"
+        # bullet safety gym envs
+        "OfflineAntCircle-v0",
+        "OfflineAntRun-v0",
+        "OfflineCarCircle-v0",
+        "OfflineDroneCircle-v0",
+        "OfflineDroneRun-v0",
+        "OfflineBallCircle-v0",
+        "OfflineBallRun-v0",
+        "OfflineCarRun-v0",
+        # safety gymnasium: car
+        "OfflineCarButton1Gymnasium-v0",
+        "OfflineCarButton2Gymnasium-v0",
+        "OfflineCarCircle1Gymnasium-v0",
+        "OfflineCarCircle2Gymnasium-v0",
+        "OfflineCarGoal1Gymnasium-v0",
+        "OfflineCarGoal2Gymnasium-v0",
+        "OfflineCarPush1Gymnasium-v0",
+        "OfflineCarPush2Gymnasium-v0",
+        # safety gymnasium: point
+        "OfflinePointButton1Gymnasium-v0",
+        "OfflinePointButton2Gymnasium-v0",
+        "OfflinePointCircle1Gymnasium-v0",
+        "OfflinePointCircle2Gymnasium-v0",
+        "OfflinePointGoal1Gymnasium-v0",
+        "OfflinePointGoal2Gymnasium-v0",
+        "OfflinePointPush1Gymnasium-v0",
+        "OfflinePointPush2Gymnasium-v0",
+        # safety gymnasium: velocity
+        "OfflineAntVelocityGymnasium-v1",
+        "OfflineHalfCheetahVelocityGymnasium-v1",
+        "OfflineHopperVelocityGymnasium-v1",
+        "OfflineSwimmerVelocityGymnasium-v1",
+        "OfflineWalker2dVelocityGymnasium-v1",
+        # metadrive envs
+        "OfflineMetadrive-easysparse-v0",
+        "OfflineMetadrive-easymean-v0",
+        "OfflineMetadrive-easydense-v0",
+        "OfflineMetadrive-mediumsparse-v0",
+        "OfflineMetadrive-mediummean-v0",
+        "OfflineMetadrive-mediumdense-v0",
+        "OfflineMetadrive-hardsparse-v0",
+        "OfflineMetadrive-hardmean-v0",
+        "OfflineMetadrive-harddense-v0",
     ]
-    # outliers_percent = [0.05, 0.1, 0.15]
-    # noise_scale = [0.05, 0.1, 0.15]
+
     policy = ["train_bc", "train_bcql", "train_bearl", "train_coptidice", "train_cpq"]
-    # seed = [0, 10, 20]
 
     # Do not write & to the end of the command, it will be added automatically.
     template = "nohup python examples/train/{}.py --task {} --device cpu"
 
     train_instructions = runner.compose(template, [policy, task])
-    runner.run(train_instructions, max_parallel=15)
+    runner.start(train_instructions, max_parallel=15)

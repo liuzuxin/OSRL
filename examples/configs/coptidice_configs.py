@@ -1,12 +1,13 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
+
 from pyrallis import field
 
 
 @dataclass
 class COptiDICETrainConfig:
     # wandb params
-    project: str = "OSRL-baselines-new"
+    project: str = "OSRL-baselines"
     group: str = None
     name: Optional[str] = None
     prefix: Optional[str] = "COptiDICE"
@@ -16,7 +17,7 @@ class COptiDICETrainConfig:
     # dataset params
     outliers_percent: float = None
     noise_scale: float = None
-    inpaint_ranges: Tuple[Tuple[float, float], ...] = None
+    inpaint_ranges: Tuple[Tuple[float, float, float, float], ...] = None
     epsilon: float = None
     density: float = 1.0
     # training params
@@ -33,7 +34,7 @@ class COptiDICETrainConfig:
     cost_limit: int = 10
     episode_len: int = 300
     batch_size: int = 512
-    update_steps: int = 300_000
+    update_steps: int = 100_000
     num_workers: int = 8
     # model params
     a_hidden_sizes: List[float] = field(default=[256, 256], is_mutable=True)
@@ -87,6 +88,20 @@ class COptiDICEAntCircleConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineAntCircle-v0"
     episode_len: int = 500
+
+
+@dataclass
+class COptiDICEBallRunConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineBallRun-v0"
+    episode_len: int = 100
+
+
+@dataclass
+class COptiDICEBallCircleConfig(COptiDICETrainConfig):
+    # training params
+    task: str = "OfflineBallCircle-v0"
+    episode_len: int = 200
 
 
 @dataclass
@@ -200,11 +215,13 @@ class COptiDICEPointPush2Config(COptiDICETrainConfig):
     task: str = "OfflinePointPush2Gymnasium-v0"
     episode_len: int = 1000
 
+
 @dataclass
 class COptiDICEAntVelocityConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineAntVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class COptiDICEHalfCheetahVelocityConfig(COptiDICETrainConfig):
@@ -212,11 +229,13 @@ class COptiDICEHalfCheetahVelocityConfig(COptiDICETrainConfig):
     task: str = "OfflineHalfCheetahVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class COptiDICEHopperVelocityConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineHopperVelocityGymnasium-v1"
     episode_len: int = 1000
+
 
 @dataclass
 class COptiDICESwimmerVelocityConfig(COptiDICETrainConfig):
@@ -224,65 +243,84 @@ class COptiDICESwimmerVelocityConfig(COptiDICETrainConfig):
     task: str = "OfflineSwimmerVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class COptiDICEWalker2dVelocityConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineWalker2dVelocityGymnasium-v1"
     episode_len: int = 1000
 
+
 @dataclass
 class COptiDICEEasySparseConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-easysparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEEasyMeanConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-easymean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEEasyDenseConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-easydense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEMediumSparseConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEMediumMeanConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediummean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEMediumDenseConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-mediumdense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEHardSparseConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardsparse-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEHardMeanConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-hardmean-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
+
 
 @dataclass
 class COptiDICEHardDenseConfig(COptiDICETrainConfig):
     # training params
     task: str = "OfflineMetadrive-harddense-v0"
     episode_len: int = 1000
+    update_steps: int = 200_000
 
 
 COptiDICE_DEFAULT_CONFIG = {
@@ -293,6 +331,8 @@ COptiDICE_DEFAULT_CONFIG = {
     "OfflineDroneCircle-v0": COptiDICEDroneCircleConfig,
     "OfflineCarRun-v0": COptiDICECarRunConfig,
     "OfflineAntCircle-v0": COptiDICEAntCircleConfig,
+    "OfflineBallCircle-v0": COptiDICEBallCircleConfig,
+    "OfflineBallRun-v0": COptiDICEBallRunConfig,
     # safety_gymnasium
     "OfflineCarButton1Gymnasium-v0": COptiDICECarButton1Config,
     "OfflineCarButton2Gymnasium-v0": COptiDICECarButton2Config,

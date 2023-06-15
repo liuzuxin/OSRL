@@ -1,18 +1,14 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
-from collections import defaultdict
 from copy import deepcopy
-from dataclasses import asdict, dataclass
 
 import gymnasium as gym
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
+from fsrl.utils import DummyLogger, WandbLogger
+from tqdm.auto import trange  # noqa
 
-from fsrl.utils import WandbLogger, DummyLogger
-from osrl.common.net import SquashedGaussianMLPActor, EnsembleDoubleQCritic, \
-                     VAE, LagrangianPIDController
+from osrl.common.net import (VAE, EnsembleDoubleQCritic, LagrangianPIDController,
+                             SquashedGaussianMLPActor)
 
 
 class BEARL(nn.Module):

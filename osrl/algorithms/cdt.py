@@ -1,19 +1,15 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple, Union
-from collections import defaultdict
-from dataclasses import asdict, dataclass
+from typing import Optional, Tuple
 
 import gymnasium as gym
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
-from torch.nn import functional as F  # noqa
-from torch import distributions as pyd
+from fsrl.utils import DummyLogger, WandbLogger
 from torch.distributions.beta import Beta
+from torch.nn import functional as F  # noqa
+from tqdm.auto import trange  # noqa
 
-from osrl.common.net import TransformerBlock, mlp, DiagGaussianActor
-from fsrl.utils import WandbLogger, DummyLogger
+from osrl.common.net import DiagGaussianActor, TransformerBlock, mlp
 
 
 class CDT(nn.Module):

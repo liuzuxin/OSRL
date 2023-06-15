@@ -1,25 +1,25 @@
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
-from dataclasses import asdict, dataclass
 import os
 import uuid
+from dataclasses import asdict, dataclass
+from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
-import gymnasium as gym  # noqa
 import bullet_safety_gym  # noqa
 import dsrl
+import gymnasium as gym  # noqa
 import numpy as np
 import pyrallis
 import torch
+from dsrl.infos import DENSITY_CFG
+from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
+from fsrl.utils import WandbLogger
 from torch.utils.data import DataLoader
 from tqdm.auto import trange  # noqa
-from dsrl.infos import DEFAULT_MAX_EPISODE_STEPS, DENSITY_CFG
-from dsrl.offline_env import OfflineEnvWrapper, wrap_env  # noqa
-from fsrl.utils import WandbLogger, DummyLogger
 
+from examples.configs.bc_configs import BC_DEFAULT_CONFIG, BCTrainConfig
+from osrl.algorithms import BC, BCTrainer
 from osrl.common import TransitionDataset
 from osrl.common.dataset import process_bc_dataset
-from osrl.algorithms import BC, BCTrainer
-from fsrl.utils.exp_util import auto_name, seed_all
-from examples.configs.bc_configs import BCTrainConfig, BC_DEFAULT_CONFIG
+from osrl.common.exp_util import auto_name, seed_all
 
 
 @pyrallis.wrap()
@@ -29,7 +29,6 @@ def train(args: BCTrainConfig):
         torch.set_num_threads(args.threads)
 
     # setup logger
-    args.episode_len = DEFAULT_MAX_EPISODE_STEPS[args.task.split("-")[0][len("Offline"):][:-len("Gymnasium")]]
     cfg = asdict(args)
     default_cfg = asdict(BC_DEFAULT_CONFIG[args.task]())
     if args.name is None:
@@ -39,40 +38,34 @@ def train(args: BCTrainConfig):
         args.group = args.task + "-cost-" + str(int(args.cost_limit))
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
-    # logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
+    logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
     # # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
-    # logger.save_config(cfg, verbose=args.verbose)
-    logger = DummyLogger()
+    logger.save_config(cfg, verbose=args.verbose)
 
     # the cost scale is down in trainer rollout
     env = gym.make(args.task)
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)
+
     cbins, rbins, max_npb, min_npb = None, None, None, None
     if args.density != 1.0:
-        density_cfg = DENSITY_CFG[args.task+"_density"+str(args.density)]
+        density_cfg = DENSITY_CFG[args.task + "_density" + str(args.density)]
         cbins = density_cfg["cbins"]
         rbins = density_cfg["rbins"]
         max_npb = density_cfg["max_npb"]
         min_npb = density_cfg["min_npb"]
-    data = env.pre_process_data(data, args.outliers_percent, args.noise_scale,
-                                args.inpaint_ranges, args.epsilon, args.density,
-                                cbins=cbins, rbins=rbins, max_npb=max_npb, min_npb=min_npb)
+    data = env.pre_process_data(data,
+                                args.outliers_percent,
+                                args.noise_scale,
+                                args.inpaint_ranges,
+                                args.epsilon,
+                                args.density,
+                                cbins=cbins,
+                                rbins=rbins,
+                                max_npb=max_npb,
+                                min_npb=min_npb)
 
-    # function w.r.t episode cost
-    frontier_fn = {}
-    frontier_fn["OfflineAntCircle-v0"] = lambda x: 600 + 4 * x
-    frontier_fn["OfflineAntRun-v0"] = lambda x: 600 + 10 / 3 * x
-    frontier_fn["OfflineCarCircle-v0"] = lambda x: 450 + 5 / 3 * x
-    frontier_fn["OfflineCarRun-v0"] = lambda x: 600
-    frontier_fn["OfflineDroneRun-v0"] = lambda x: 325 + 125 / 70 * x
-    frontier_fn["OfflineDroneCircle-v0"] = lambda x: 600 + 4 * x
-    frontier_range = 50
-
-    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode,
-                    #    frontier_fn[args.task], 
-                       None,
-                       frontier_range)
+    process_bc_dataset(data, args.cost_limit, args.gamma, args.bc_mode)
 
     # model & optimizer & scheduler setup
     state_dim = env.observation_space.shape[0]

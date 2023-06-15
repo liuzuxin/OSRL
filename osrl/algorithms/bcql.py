@@ -1,20 +1,14 @@
-from dataclasses import asdict, dataclass
 from copy import deepcopy
-from typing import Any, DefaultDict, Dict, List, Optional, Tuple
-import os
-import uuid
 
 import gymnasium as gym
-import dsrl
-import pyrallis
 import numpy as np
-from tqdm.auto import tqdm, trange  # noqa
-
 import torch
 import torch.nn as nn
-from fsrl.utils import WandbLogger, DummyLogger
-from osrl.common.net import MLPGaussianPerturbationActor, \
-    EnsembleDoubleQCritic, VAE, LagrangianPIDController
+from fsrl.utils import DummyLogger, WandbLogger
+from tqdm.auto import trange  # noqa
+
+from osrl.common.net import (VAE, EnsembleDoubleQCritic, LagrangianPIDController,
+                             MLPGaussianPerturbationActor)
 
 
 class BCQL(nn.Module):
