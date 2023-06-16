@@ -21,7 +21,7 @@
 
 ---
 
-**OSRL (Offline Safe Reinforcement Learning)** offers a collection of elegant and extensible implementations of state-of-the-art offline safe reinforcement learning (RL) algorithms. Aimed at propelling research in offline safe RL, OSRL serves as a solid foundation to implement, benchmark, and iterate on safe RL solutions.
+**OSRL (Offline Safe Reinforcement Learning)** offers a collection of elegant and extensible implementations of state-of-the-art offline safe reinforcement learning (RL) algorithms. Aimed at propelling research in offline safe RL, OSRL serves as a solid foundation to implement, benchmark, and iterate on safe RL solutions. This repository is heavily inspired by the [CORL](https://github.com/tinkoff-ai/CORL) library for offline RL, check them out too!
 
 The OSRL package is a crucial component of our larger benchmarking suite for offline safe learning, which also includes [DSRL](https://github.com/liuzuxin/DSRL) and [FSRL](https://github.com/liuzuxin/FSRL), and is built to facilitate the development of robust and reliable offline safe RL solutions.
 
@@ -94,6 +94,10 @@ To evaluate a trained agent, for example, a BCQ agent, simply run
 python example/eval/eval_bcql.py --path path_to_model --eval_episodes 20
 ```
 It will load config file from `path_to_model/config.yaml` and model file from `path_to_model/checkpoints/model.pt`, run 20 episodes, and print the average normalized reward and cost.
+
+## Acknowledgement
+
+The framework design and most baseline implementations of OSRL are heavily inspired by the [CORL](https://github.com/tinkoff-ai/CORL) project, which is a great library for offline RL, and the [cleanrl](https://github.com/vwxyzjn/cleanrl) project, which targets online RL. So do check them out if you are interested!
 
 
 ## Contributing
