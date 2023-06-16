@@ -7,7 +7,7 @@
 <div align="center">
 
   <a>![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-brightgreen.svg)</a>
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
+  [![License](https://img.shields.io/badge/License-Apache-blue.svg)](#license)
   [![PyPI](https://img.shields.io/pypi/v/osrl-lib?logo=pypi)](https://pypi.org/project/osrl-lib)
   [![GitHub Repo Stars](https://img.shields.io/github/stars/liuzuxin/osrl?color=brightgreen&logo=github)](https://github.com/liuzuxin/osrl/stargazers)
   [![Downloads](https://static.pepy.tech/personalized-badge/osrl-lib?period=total&left_color=grey&right_color=blue&left_text=downloads)](https://pepy.tech/project/osrl-lib)
