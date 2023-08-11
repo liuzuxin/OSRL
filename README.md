@@ -23,7 +23,6 @@
 
 **OSRL (Offline Safe Reinforcement Learning)** offers a collection of elegant and extensible implementations of state-of-the-art offline safe reinforcement learning (RL) algorithms. Aimed at propelling research in offline safe RL, OSRL serves as a solid foundation to implement, benchmark, and iterate on safe RL solutions. This repository is heavily inspired by the [CORL](https://github.com/corl-team/CORL) library for offline RL, check them out too!
 
-
 The OSRL package is a crucial component of our larger benchmarking suite for offline safe learning, which also includes [DSRL](https://github.com/liuzuxin/DSRL) and [FSRL](https://github.com/liuzuxin/FSRL), and is built to facilitate the development of robust and reliable offline safe RL solutions.
 
 To learn more, please visit our [project website](http://www.offline-saferl.org).
