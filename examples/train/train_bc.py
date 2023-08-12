@@ -1,5 +1,6 @@
 import os
 import uuid
+import types
 from dataclasses import asdict, dataclass
 from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
@@ -24,23 +25,29 @@ from osrl.common.exp_util import auto_name, seed_all
 
 @pyrallis.wrap()
 def train(args: BCTrainConfig):
-    seed_all(args.seed)
-    if args.device == "cpu":
-        torch.set_num_threads(args.threads)
+    # update config
+    cfg, old_cfg = asdict(args), asdict(BCTrainConfig())
+    differing_values = {key: cfg[key] for key in cfg.keys() if cfg[key] != old_cfg[key]}
+    cfg = asdict(BC_DEFAULT_CONFIG[args.task]())
+    cfg.update(differing_values)
+    args = types.SimpleNamespace(**cfg)
 
     # setup logger
-    cfg = asdict(args)
     default_cfg = asdict(BC_DEFAULT_CONFIG[args.task]())
     if args.name is None:
-        args.prefix += "-" + args.bc_mode
         args.name = auto_name(default_cfg, cfg, args.prefix, args.suffix)
     if args.group is None:
         args.group = args.task + "-cost-" + str(int(args.cost_limit))
     if args.logdir is not None:
         args.logdir = os.path.join(args.logdir, args.group, args.name)
     logger = WandbLogger(cfg, args.project, args.group, args.name, args.logdir)
-    # # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
+    # logger = TensorboardLogger(args.logdir, log_txt=True, name=args.name)
     logger.save_config(cfg, verbose=args.verbose)
+
+    # set seed
+    seed_all(args.seed)
+    if args.device == "cpu":
+        torch.set_num_threads(args.threads)
 
     # the cost scale is down in trainer rollout
     env = gym.make(args.task)
