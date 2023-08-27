@@ -31,6 +31,8 @@ def eval(args: EvalConfig):
     if args.device == "cpu":
         torch.set_num_threads(args.threads)
 
+    if "Metadrive" in cfg["task"]:
+        import gym
     env = gym.make(cfg["task"])
     env.set_target_cost(cfg["cost_limit"])
 

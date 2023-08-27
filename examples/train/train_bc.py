@@ -50,6 +50,8 @@ def train(args: BCTrainConfig):
         torch.set_num_threads(args.threads)
 
     # the cost scale is down in trainer rollout
+    if "Metadrive" in args.task:
+        import gym
     env = gym.make(args.task)
     data = env.get_dataset()
     env.set_target_cost(args.cost_limit)

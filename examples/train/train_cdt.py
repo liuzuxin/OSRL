@@ -49,6 +49,8 @@ def train(args: CDTTrainConfig):
         torch.set_num_threads(args.threads)
 
     # initialize environment
+    if "Metadrive" in args.task:
+        import gym
     env = gym.make(args.task)
 
     # pre-process offline dataset
