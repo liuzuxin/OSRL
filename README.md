@@ -93,7 +93,7 @@ To evaluate a trained agent, for example, a BCQ agent, simply run
 ```
 python example/eval/eval_bcql.py --path path_to_model --eval_episodes 20
 ```
-It will load config file from `path_to_model/config.yaml` and model file from `path_to_model/checkpoints/model.pt`, run 20 episodes, and print the average normalized reward and cost.
+It will load config file from `path_to_model/config.yaml` and model file from `path_to_model/checkpoints/model.pt`, run 20 episodes, and print the average normalized reward and cost. The pretrained checkpoints for all datasets are available [here](https://drive.google.com/drive/folders/1lZmw2NVNR4YGUdrkih9o3rTMDrWCI_jw?usp=sharing) for reference.
 
 ## Acknowledgement
 
