@@ -2,7 +2,6 @@ from dataclasses import asdict, dataclass
 from typing import Any, DefaultDict, Dict, List, Optional, Tuple
 
 import dsrl
-import gymnasium as gym  # noqa
 import numpy as np
 import pyrallis
 import torch
@@ -33,6 +32,9 @@ def eval(args: EvalConfig):
 
     if "Metadrive" in cfg["task"]:
         import gym
+    else:
+        import gymnasium as gym  # noqa
+
     env = gym.make(cfg["task"])
     env.set_target_cost(cfg["cost_limit"])
 
