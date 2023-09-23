@@ -82,7 +82,7 @@ OSRL uses the `WandbLogger` in [FSRL](https://github.com/liuzuxin/FSRL) and [Pyr
 For example, to train the `bcql` method, simply run by overriding the default parameters:
 
 ```shell
-python examples/train/train_bcql.py --task OfflineCarCirvle-v0 --param1 args1 ...
+python examples/train/train_bcql.py --task OfflineCarCircle-v0 --param1 args1 ...
 ```
 By default, the config file and the logs during training will be written to `logs\` folder and the training plots can be viewed online using Wandb.
 
@@ -90,8 +90,8 @@ You can also launch a sequence of experiments or in parallel via the [EasyRunner
 
 ### Evaluation
 To evaluate a trained agent, for example, a BCQ agent, simply run
-```
-python example/eval/eval_bcql.py --path path_to_model --eval_episodes 20
+```shell
+python examples/eval/eval_bcql.py --path path_to_model --eval_episodes 20
 ```
 It will load config file from `path_to_model/config.yaml` and model file from `path_to_model/checkpoints/model.pt`, run 20 episodes, and print the average normalized reward and cost. The pretrained checkpoints for all datasets are available [here](https://drive.google.com/drive/folders/1lZmw2NVNR4YGUdrkih9o3rTMDrWCI_jw?usp=sharing) for reference.
 
