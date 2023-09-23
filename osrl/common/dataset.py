@@ -42,11 +42,11 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
             - "risky": Only trajectories with cost above twice the cost limit are used for behavior cloning.
             - "frontier": Only trajectories near the Pareto frontier are used for behavior cloning.
             - "boundary": Only trajectories near the cost limit are used for behavior cloning.
-        frontier_fn (function, optional): A function used to compute the frontier. 
+        frontier_fn (function, optional): A function used to compute the frontier.
                                           Required if bc_mode is "frontier".
-        frontier_range (float, optional): The range around the frontier to use for selecting trajectories. 
+        frontier_range (float, optional): The range around the frontier to use for selecting trajectories.
                                            Required if bc_mode is "frontier".
-    
+
     Returns:
         dict: A dictionary containing the processed dataset.
 
@@ -136,16 +136,16 @@ def process_bc_dataset(dataset: dict, cost_limit: float, gamma: float, bc_mode: 
 
 def process_sequence_dataset(dataset: dict, cost_reverse: bool = False):
     '''
-    Processe a given dataset into a list of trajectories, each containing information about 
+    Processe a given dataset into a list of trajectories, each containing information about
     the observations, actions, rewards, costs, returns, and cost returns for a single episode.
-    
+
     Args:
 
-        dataset (dict): A dictionary representing the dataset, 
-                        with keys "observations", "actions", "rewards", "costs", "terminals", and "timeouts", 
+        dataset (dict): A dictionary representing the dataset,
+                        with keys "observations", "actions", "rewards", "costs", "terminals", and "timeouts",
                         each containing numpy arrays of corresponding data.
         cost_reverse (bool): An optional boolean parameter that indicates whether the cost should be reversed.
-        
+
     Returns:
         traj (list): A list of dictionaries, each representing a trajectory.
         info (dict): A dictionary containing additional information about the trajectories
@@ -190,13 +190,13 @@ def get_nearest_point(original_data: np.ndarray,
     """
     Given two arrays of data, finds the indices of the original data that are closest
     to each sample in the sampled data, and returns a list of those indices.
-    
+
     Args:
         original_data: A 2D numpy array of the original data.
         sampled_data: A 2D numpy array of the sampled data.
         max_rew_decrease: A float representing the maximum reward decrease allowed.
         beta: A float used in calculating the distance between points.
-    
+
     Returns:
         A list of integers representing the indices of the original data that are closest
         to each sample in the sampled data.
@@ -308,8 +308,8 @@ def augmentation(trajs: list,
                  max_reward: float = 1000.0,
                  min_reward: float = 0.0):
     """
-    Applies data augmentation to a list of trajectories, 
-    returning the augmented trajectories along with their indices 
+    Applies data augmentation to a list of trajectories,
+    returning the augmented trajectories along with their indices
     and the Pareto frontier of the original data.
 
     Args:
@@ -401,15 +401,15 @@ def compute_sample_prob(dataset, pareto_frontier, beta):
     Computes the probability of sampling each trajectory in a given dataset.
 
     Args:
-        dataset (list): A list of dictionaries containing the trajectories 
+        dataset (list): A list of dictionaries containing the trajectories
                         to compute the sample probabilities for.
-        pareto_frontier (callable): A function that takes in a cost value and 
-                                    returns the corresponding maximum reward value 
+        pareto_frontier (callable): A function that takes in a cost value and
+                                    returns the corresponding maximum reward value
                                     on the Pareto frontier.
         beta (float): A hyperparameter that controls the shape of the probability distribution.
 
     Returns:
-        np.ndarray: A 1D numpy array of the same length as the dataset, 
+        np.ndarray: A 1D numpy array of the same length as the dataset,
                     containing the probability of sampling each trajectory.
 
     """
@@ -565,7 +565,7 @@ def random_augmentation(trajs: list,
                         cstd: float = 0.25):
     """
     Augments a list of trajectories with random noise.
-    
+
     Args:
         trajs (list): A list of dictionaries, where each dictionary represents a trajectory
             and contains "returns" and "cost_returns" keys that hold the returns and cost returns
@@ -790,7 +790,7 @@ class SequenceDataset(IterableDataset):
 class TransitionDataset(IterableDataset):
     """
     A dataset of transitions (state, action, reward, next state) used for training RL agents.
-    
+
     Args:
         dataset (dict): A dictionary of NumPy arrays containing the observations, actions, rewards, etc.
         reward_scale (float): The scale factor for the rewards.
@@ -821,7 +821,7 @@ class TransitionDataset(IterableDataset):
 
     def get_dataset_states(self):
         """
-        Returns the proportion of initial states in the dataset, 
+        Returns the proportion of initial states in the dataset,
         as well as the standard deviations of the observation and action spaces.
         """
         init_state_propotion = self.dataset["is_init"].mean()
@@ -840,6 +840,31 @@ class TransitionDataset(IterableDataset):
             is_init = self.dataset["is_init"][idx]
             return observations, next_observations, actions, rewards, costs, done, is_init
         return observations, next_observations, actions, rewards, costs, done
+
+    def __iter__(self):
+        while True:
+            idx = np.random.choice(self.dataset_size, p=self.sample_prob)
+            yield self.__prepare_sample(idx)
+
+
+class InitialStateDataset(IterableDataset):
+    """
+    A dataset of initial states used for training RL agents.
+
+    Args:
+        dataset (dict): A dictionary of NumPy arrays containing the observations, actions, rewards, etc.
+    """
+
+    def __init__(self, dataset: dict):
+        done = np.logical_or(
+                dataset["terminals"],
+                dataset["timeouts"]).astype(np.float32)
+        self.sample_prob = None
+        self.dataset_size = int(done.sum().item())
+        self.dataset = dataset["observations"][dataset["done"] == 1, :]
+
+    def __prepare_sample(self, idx):
+        return self.dataset[idx, :],
 
     def __iter__(self):
         while True:
