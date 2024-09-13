@@ -25,13 +25,16 @@
 
 The OSRL package is a crucial component of our larger benchmarking suite for offline safe learning, which also includes [DSRL](https://github.com/liuzuxin/DSRL) and [FSRL](https://github.com/liuzuxin/FSRL), and is built to facilitate the development of robust and reliable offline safe RL solutions.
 
-To learn more, please visit our [project website](http://www.offline-saferl.org). If you find this code useful, please cite:
+To learn more, please visit our [project website](http://www.offline-saferl.org). If you find this code useful, please cite our paper, which has been accepted by the [DMLR journal](https://data.mlr.press/volumes/01.html):
 ```bibtex
-@article{liu2023datasets,
+@article{
+  liu2024offlinesaferl,
   title={Datasets and Benchmarks for Offline Safe Reinforcement Learning},
-  author={Liu, Zuxin and Guo, Zijian and Lin, Haohong and Yao, Yihang and Zhu, Jiacheng and Cen, Zhepeng and Hu, Hanjiang and Yu, Wenhao and Zhang, Tingnan and Tan, Jie and others},
-  journal={arXiv preprint arXiv:2306.09303},
-  year={2023}
+  author={Zuxin Liu and Zijian Guo and Haohong Lin and Yihang Yao and Jiacheng Zhu and Zhepeng Cen and Hanjiang Hu and Wenhao Yu and Tingnan Zhang and Jie Tan and Ding Zhao},
+  journal={Journal of Data-centric Machine Learning Research},
+  issn={XXXX-XXXX},
+  year={2024},
+  url={https://openreview.net/forum?id=ajf5PE3Z7w}
 }
 ```
 
