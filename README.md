@@ -32,9 +32,7 @@ To learn more, please visit our [project website](http://www.offline-saferl.org)
   title={Datasets and Benchmarks for Offline Safe Reinforcement Learning},
   author={Zuxin Liu and Zijian Guo and Haohong Lin and Yihang Yao and Jiacheng Zhu and Zhepeng Cen and Hanjiang Hu and Wenhao Yu and Tingnan Zhang and Jie Tan and Ding Zhao},
   journal={Journal of Data-centric Machine Learning Research},
-  issn={XXXX-XXXX},
-  year={2024},
-  url={https://openreview.net/forum?id=ajf5PE3Z7w}
+  year={2024}
 }
 ```
 
